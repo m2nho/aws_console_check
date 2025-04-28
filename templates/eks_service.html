@@ -1,0 +1,172 @@
+<!-- EKS 섹션 -->
+<div class="card mb-4 service-section" id="eks-section">
+    <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#eks-content" aria-expanded="true">
+        <h5 class="mb-0">
+            <i class="fas fa-cubes me-2"></i> {{ services.eks.name }}
+        </h5>
+        <span class="toggle-icon">
+            <i class="fas fa-chevron-down"></i>
+        </span>
+    </div>
+    <div class="collapse show" id="eks-content">
+        <div class="card-body">
+            {% if all_services_data.eks.error is defined %}
+                <div class="alert alert-danger">{{ all_services_data.eks.error }}</div>
+            {% elif all_services_data.eks.clusters|default([])|length > 0 %}
+                <!-- EKS Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 클러스터</h5>
+                                <p class="card-text display-6">{{ all_services_data.eks.clusters|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">활성 클러스터</h5>
+                                <p class="card-text display-6">{{ all_services_data.eks.clusters|selectattr('status', 'equalto', 'ACTIVE')|list|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">쿠버네티스 버전</h5>
+                                <p class="card-text">{{ all_services_data.eks.clusters|map(attribute='version')|list|unique|list|length }} 종류</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sortable">
+                        <thead>
+                            <tr>
+                                <th>클러스터 이름</th>
+                                <th>상태</th>
+                                <th>버전</th>
+                                <th>플랫폼 버전</th>
+                                <th>생성일</th>
+                                <th>위험도</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cluster in all_services_data.eks.clusters %}
+                            <tr>
+                                <td>{{ cluster.name }}</td>
+                                <td>
+                                    {% if cluster.status == 'ACTIVE' %}
+                                        <span class="badge bg-success">활성</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ cluster.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ cluster.version }}</td>
+                                <td>{{ cluster.platform_version }}</td>
+                                <td>{{ cluster.created_at }}</td>
+                                <td>
+                                    {% set rec_key = 'eks:' ~ cluster.name %}
+                                    {% if resource_recommendations[rec_key] is defined %}
+                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">없음</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-eks-{{ loop.index }}">
+                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="details-row">
+                                <td colspan="7" class="p-0">
+                                    <div class="collapse" id="details-eks-{{ loop.index }}">
+                                        <div class="card card-body bg-light border-0 p-3 m-2">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-cubes me-2"></i>클러스터 정보</h6>
+                                                <p class="mb-1"><strong>클러스터 이름:</strong> {{ cluster.name }}</p>
+                                                <p class="mb-1"><strong>상태:</strong> {{ cluster.status }}</p>
+                                                <p class="mb-1"><strong>버전:</strong> {{ cluster.version }}</p>
+                                                <p class="mb-1"><strong>플랫폼 버전:</strong> {{ cluster.platform_version }}</p>
+                                                <p class="mb-0"><strong>생성일:</strong> {{ cluster.created_at }}</p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
+                                                </h6>
+                                                <p class="mb-0">
+                                                    {% if cluster.version != '1.27' %}
+                                                        EKS 클러스터 {{ cluster.name }}가 최신 버전({{ cluster.version }})이 아닙니다.
+                                                    {% else %}
+                                                        EKS 클러스터 {{ cluster.name }}의 설정이 최적화되지 않았을 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
+                                                <p class="mb-0">
+                                                    {% if cluster.version != '1.27' %}
+                                                        최신 버전이 아닌 클러스터는 보안 취약점에 노출될 수 있으며, 최신 기능을 사용할 수 없습니다.
+                                                    {% else %}
+                                                        EKS 클러스터 설정이 최적화되지 않으면 성능 저하나 불필요한 비용이 발생할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
+                                                <ol class="ps-3 mb-0">
+                                                    {% if cluster.version != '1.27' %}
+                                                        <li class="mb-1">클러스터 업그레이드 계획을 수립합니다.</li>
+                                                        <li class="mb-1">애플리케이션이 새 버전과 호환되는지 테스트합니다.</li>
+                                                        <li class="mb-1">클러스터 업그레이드를 수행합니다.</li>
+                                                        <li class="mb-1">업그레이드 후 애플리케이션이 정상적으로 작동하는지 확인합니다.</li>
+                                                    {% else %}
+                                                        <li class="mb-1">클러스터의 노드 그룹 구성을 검토하여 워크로드에 맞게 조정합니다.</li>
+                                                        <li class="mb-1">Spot 인스턴스를 활용하여 비용을 절감합니다.</li>
+                                                        <li class="mb-1">클러스터 오토스케일러를 구성하여 리소스 활용도를 최적화합니다.</li>
+                                                        <li class="mb-1">Kubernetes 리소스 요청 및 제한을 적절히 설정합니다.</li>
+                                                    {% endif %}
+                                                </ol>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
+                                                <p class="mb-0">
+                                                    {% if cluster.version != '1.27' %}
+                                                        최신 버전으로 업그레이드하면 보안이 강화되고, 새로운 기능을 활용할 수 있으며, 성능이 향상될 수 있습니다.
+                                                    {% else %}
+                                                        EKS 클러스터 설정을 최적화하면 성능을 향상시키고 비용을 절감할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div>
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
+                                                <ul class="ps-3 mb-0">
+                                                    <li><a href="https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html" target="_blank">EKS 클러스터 업데이트</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html" target="_blank">EKS 최적화 AMI</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html" target="_blank">Kubernetes 클러스터 오토스케일러</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">EKS 클러스터가 없습니다.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>

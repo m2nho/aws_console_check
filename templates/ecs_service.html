@@ -1,0 +1,179 @@
+<!-- ECS 섹션 -->
+<div class="card mb-4 service-section" id="ecs-section">
+    <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#ecs-content" aria-expanded="true">
+        <h5 class="mb-0">
+            <i class="fas fa-docker me-2"></i> {{ services.ecs.name }}
+        </h5>
+        <span class="toggle-icon">
+            <i class="fas fa-chevron-down"></i>
+        </span>
+    </div>
+    <div class="collapse show" id="ecs-content">
+        <div class="card-body">
+            {% if all_services_data.ecs.error is defined %}
+                <div class="alert alert-danger">{{ all_services_data.ecs.error }}</div>
+            {% elif all_services_data.ecs.clusters|default([])|length > 0 %}
+                <!-- ECS Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 클러스터</h5>
+                                <p class="card-text display-6">{{ all_services_data.ecs.clusters|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 서비스</h5>
+                                <p class="card-text display-6">{{ all_services_data.ecs.clusters|sum(attribute='services')|int }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 작업</h5>
+                                <p class="card-text display-6">{{ all_services_data.ecs.clusters|sum(attribute='tasks')|int }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body">
+                                <h5 class="card-title">총 인스턴스</h5>
+                                <p class="card-text display-6">{{ all_services_data.ecs.clusters|sum(attribute='instances')|int }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sortable">
+                        <thead>
+                            <tr>
+                                <th>클러스터 이름</th>
+                                <th>상태</th>
+                                <th>서비스 수</th>
+                                <th>작업 수</th>
+                                <th>인스턴스 수</th>
+                                <th>위험도</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cluster in all_services_data.ecs.clusters %}
+                            <tr>
+                                <td>{{ cluster.name }}</td>
+                                <td>
+                                    {% if cluster.status == 'ACTIVE' %}
+                                        <span class="badge bg-success">활성</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ cluster.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ cluster.services }}</td>
+                                <td>{{ cluster.tasks }}</td>
+                                <td>{{ cluster.instances }}</td>
+                                <td>
+                                    {% set rec_key = 'ecs:' ~ cluster.name %}
+                                    {% if resource_recommendations[rec_key] is defined %}
+                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">없음</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-ecs-{{ loop.index }}">
+                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="details-row">
+                                <td colspan="7" class="p-0">
+                                    <div class="collapse" id="details-ecs-{{ loop.index }}">
+                                        <div class="card card-body bg-light border-0 p-3 m-2">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-docker me-2"></i>클러스터 정보</h6>
+                                                <p class="mb-1"><strong>클러스터 이름:</strong> {{ cluster.name }}</p>
+                                                <p class="mb-1"><strong>상태:</strong> {{ cluster.status }}</p>
+                                                <p class="mb-1"><strong>서비스 수:</strong> {{ cluster.services }}</p>
+                                                <p class="mb-1"><strong>작업 수:</strong> {{ cluster.tasks }}</p>
+                                                <p class="mb-0"><strong>인스턴스 수:</strong> {{ cluster.instances }}</p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
+                                                </h6>
+                                                <p class="mb-0">
+                                                    {% if cluster.instances > 0 and cluster.tasks == 0 %}
+                                                        ECS 클러스터 {{ cluster.name }}에 인스턴스가 있지만 실행 중인 작업이 없습니다.
+                                                    {% else %}
+                                                        ECS 클러스터 {{ cluster.name }}의 설정이 최적화되지 않았을 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
+                                                <p class="mb-0">
+                                                    {% if cluster.instances > 0 and cluster.tasks == 0 %}
+                                                        사용되지 않는 인스턴스는 불필요한 비용을 발생시킵니다.
+                                                    {% else %}
+                                                        ECS 클러스터 설정이 최적화되지 않으면 성능 저하나 불필요한 비용이 발생할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
+                                                <ol class="ps-3 mb-0">
+                                                    {% if cluster.instances > 0 and cluster.tasks == 0 %}
+                                                        <li class="mb-1">사용되지 않는 인스턴스를 종료하거나 Auto Scaling 그룹을 조정합니다.</li>
+                                                        <li class="mb-1">클러스터가 더 이상 필요하지 않은 경우 삭제를 고려합니다.</li>
+                                                        <li class="mb-1">Fargate 시작 유형을 사용하여 서버리스 컨테이너 실행을 고려합니다.</li>
+                                                    {% else %}
+                                                        <li class="mb-1">클러스터의 Auto Scaling 설정을 검토하여 워크로드에 맞게 조정합니다.</li>
+                                                        <li class="mb-1">Spot 인스턴스를 활용하여 비용을 절감합니다.</li>
+                                                        <li class="mb-1">컨테이너 배치 전략을 최적화하여 리소스 활용도를 높입니다.</li>
+                                                        <li class="mb-1">서비스 검색 및 로드 밸런싱 설정을 검토합니다.</li>
+                                                    {% endif %}
+                                                </ol>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
+                                                <p class="mb-0">
+                                                    {% if cluster.instances > 0 and cluster.tasks == 0 %}
+                                                        사용되지 않는 리소스를 제거하여 비용을 절감할 수 있습니다.
+                                                    {% else %}
+                                                        ECS 클러스터 설정을 최적화하면 성능을 향상시키고 비용을 절감할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div>
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
+                                                <ul class="ps-3 mb-0">
+                                                    <li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cluster-auto-scaling.html" target="_blank">ECS 클러스터 Auto Scaling</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html" target="_blank">ECS 최적화 AMI</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html" target="_blank">AWS Fargate</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">ECS 클러스터가 없습니다.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>

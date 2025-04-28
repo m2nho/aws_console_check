@@ -1,0 +1,193 @@
+<!-- DynamoDB 섹션 -->
+<div class="card mb-4 service-section" id="dynamodb-section">
+    <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#dynamodb-content" aria-expanded="true">
+        <h5 class="mb-0">
+            <i class="fas fa-table me-2"></i> {{ services.dynamodb.name }}
+        </h5>
+        <span class="toggle-icon">
+            <i class="fas fa-chevron-down"></i>
+        </span>
+    </div>
+    <div class="collapse show" id="dynamodb-content">
+        <div class="card-body">
+            {% if all_services_data.dynamodb.error is defined %}
+                <div class="alert alert-danger">{{ all_services_data.dynamodb.error }}</div>
+            {% elif all_services_data.dynamodb.tables|default([])|length > 0 %}
+                <!-- DynamoDB Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 테이블</h5>
+                                <p class="card-text display-6">{{ all_services_data.dynamodb.tables|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 항목 수</h5>
+                                <p class="card-text display-6">{{ all_services_data.dynamodb.tables|sum(attribute='items')|int }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 크기</h5>
+                                <p class="card-text">{{ (all_services_data.dynamodb.tables|sum(attribute='size')|round(2)) }} MB</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sortable">
+                        <thead>
+                            <tr>
+                                <th>테이블 이름</th>
+                                <th>상태</th>
+                                <th>항목 수</th>
+                                <th>크기 (MB)</th>
+                                <th>위험도</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for table in all_services_data.dynamodb.tables %}
+                            <tr>
+                                <td>{{ table.name }}</td>
+                                <td>
+                                    {% if table.status == 'ACTIVE' %}
+                                        <span class="badge bg-success">활성</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ table.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ table.items }}</td>
+                                <td>{{ table.size|round(2) }}</td>
+                                <td>
+                                    {% set rec_key = 'dynamodb:' ~ table.name %}
+                                    {% if resource_recommendations[rec_key] is defined %}
+                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">없음</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-dynamodb-{{ loop.index }}">
+                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="details-row">
+                                <td colspan="6" class="p-0">
+                                    <div class="collapse" id="details-dynamodb-{{ loop.index }}">
+                                        <div class="card card-body bg-light border-0 p-3 m-2">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-table me-2"></i>테이블 정보</h6>
+                                                <p class="mb-1"><strong>테이블 이름:</strong> {{ table.name }}</p>
+                                                <p class="mb-1"><strong>상태:</strong> {{ table.status }}</p>
+                                                <p class="mb-1"><strong>항목 수:</strong> {{ table.items }}</p>
+                                                <p class="mb-0"><strong>크기:</strong> {{ table.size|round(2) }} MB</p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
+                                                </h6>
+                                                <p class="mb-0">
+                                                    {% if table.items > 1000000 %}
+                                                        DynamoDB 테이블 {{ table.name }}에 많은 항목({{ table.items }}개)이 있습니다.
+                                                    {% else %}
+                                                        DynamoDB 테이블 {{ table.name }}의 설정이 최적화되지 않았을 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
+                                                <p class="mb-0">
+                                                    {% if table.items > 1000000 %}
+                                                        테이블에 항목이 많으면 쿼리 성능이 저하되고 비용이 증가할 수 있습니다.
+                                                    {% else %}
+                                                        DynamoDB 테이블 설정이 최적화되지 않으면 성능 저하나 불필요한 비용이 발생할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
+                                                <ol class="ps-3 mb-0">
+                                                    {% if table.items > 1000000 %}
+                                                        <li class="mb-1">파티셔닝 전략을 검토하고 필요한 경우 테이블을 여러 개로 분할합니다.</li>
+                                                        <li class="mb-1">인덱스 사용을 최적화하여 쿼리 성능을 향상시킵니다.</li>
+                                                        <li class="mb-1">오래된 데이터를 아카이브하거나 삭제하는 전략을 구현합니다.</li>
+                                                        <li class="mb-1">Auto Scaling 설정을 검토하여 필요에 따라 용량을 조정합니다.</li>
+                                                    {% else %}
+                                                        <li class="mb-1">프로비저닝된 용량 모드와 온디맨드 용량 모드 중 워크로드에 적합한 모드를 선택합니다.</li>
+                                                        <li class="mb-1">인덱스 사용을 최적화하여 쿼리 성능을 향상시킵니다.</li>
+                                                        <li class="mb-1">TTL(Time to Live) 설정을 활용하여 오래된 데이터를 자동으로 삭제합니다.</li>
+                                                        <li class="mb-1">DAX(DynamoDB Accelerator)를 고려하여 읽기 성능을 향상시킵니다.</li>
+                                                    {% endif %}
+                                                </ol>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
+                                                <p class="mb-0">
+                                                    {% if table.items > 1000000 %}
+                                                        적절한 파티셔닝과 인덱싱을 통해 쿼리 성능을 향상시키고 비용을 최적화할 수 있습니다.
+                                                    {% else %}
+                                                        DynamoDB 설정을 최적화하면 성능을 향상시키고 비용을 절감할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div>
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
+                                                <ul class="ps-3 mb-0">
+                                                    <li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html" target="_blank">DynamoDB 파티션 키 설계</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-indexes.html" target="_blank">DynamoDB 인덱스 모범 사례</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/AutoScaling.html" target="_blank">DynamoDB Auto Scaling</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-3 fa-2x"></i>
+                        <div>
+                            <h5 class="alert-heading mb-1">DynamoDB 테이블이 없습니다.</h5>
+                            <p class="mb-0">AWS 계정에 DynamoDB 테이블이 없습니다. 필요한 경우 AWS 콘솔에서 테이블을 생성하세요.</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mt-3">
+                        <h6 class="fw-bold">테이블 생성 방법:</h6>
+                        <ol class="ps-3 mb-0">
+                            <li class="mb-1">AWS 콘솔에서 DynamoDB 서비스로 이동합니다.</li>
+                            <li class="mb-1">'테이블 생성' 버튼을 클릭합니다.</li>
+                            <li class="mb-1">테이블 이름과 파티션 키를 설정합니다.</li>
+                            <li class="mb-1">필요에 따라 정렬 키와 기타 설정을 구성합니다.</li>
+                            <li class="mb-1">'테이블 생성' 버튼을 클릭하여 완료합니다.</li>
+                        </ol>
+                    </div>
+                    <div class="mt-3">
+                        <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-1.html" target="_blank" class="btn btn-sm btn-primary">
+                            <i class="fas fa-external-link-alt me-1"></i> DynamoDB 시작 가이드
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

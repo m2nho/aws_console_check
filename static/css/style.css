@@ -1,0 +1,232 @@
+/* Main CSS file for AWS Console Check application */
+
+/* Modal and toggle styling */
+.modal-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
+    margin: 0;
+    z-index: 1050;
+}
+
+.modal-content {
+    transform: none !important;
+    z-index: 1051;
+}
+
+.modal-open {
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+/* New collapse-details styling */
+.collapse-details {
+    display: none;
+    margin-top: 1rem;
+}
+
+.collapse-details.show {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.details-container {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.details-content {
+    padding: 0;
+}
+
+.details-header {
+    background-color: #f0f0f0;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.details-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #212529;
+}
+
+.details-body {
+    padding: 1.5rem;
+}
+
+.details-body h6 {
+    color: #495057;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.details-body h6:first-child {
+    margin-top: 0;
+}
+
+.details-footer {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    text-align: right;
+}
+
+/* General styling */
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.card-header {
+    font-weight: bold;
+    padding: 1rem;
+}
+
+.footer {
+    margin-top: 3rem;
+}
+
+/* Dashboard styling */
+.service-card {
+    transition: transform 0.2s;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+}
+
+.service-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Login page styling */
+.login-container {
+    max-width: 400px;
+    margin: 2rem auto;
+}
+
+/* Table styling */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+/* Badge styling */
+.badge {
+    font-weight: normal;
+    padding: 0.4em 0.6em;
+}
+
+/* Form styling */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.btn-outline-primary {
+    color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.btn-outline-dark {
+    color: #343a40;
+    border-color: #343a40;
+}
+
+.btn-outline-dark:hover {
+    background-color: #343a40;
+    color: #fff;
+}
+
+/* Alert styling */
+.alert {
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+/* Breadcrumb styling */
+.breadcrumb {
+    background-color: transparent;
+    padding-left: 0;
+    margin-bottom: 1.5rem;
+}
+
+/* Accordion styling */
+.accordion-button:not(.collapsed) {
+    background-color: #e7f1ff;
+    color: #0c63e4;
+}
+
+/* List group styling */
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.25rem;
+    }
+    
+    .service-icon {
+        font-size: 1.5rem;
+    }
+    
+    .details-container {
+        margin: 0.5rem 0;
+    }
+    
+    .details-header {
+        padding: 0.75rem;
+    }
+    
+    .details-body {
+        padding: 1rem;
+    }
+}

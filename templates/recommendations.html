@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}추천 사항 - AWS 콘솔 체크{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">추천 사항</li>
+    </ol>
+</nav>
+
+<h1 class="mb-4">AWS 서비스 추천 사항</h1>
+<p class="lead">AWS 서비스 사용을 최적화하기 위한 추천 사항입니다.</p>
+
+{% if recommendations %}
+    <!-- 요약 정보 -->
+    <div class="alert alert-info mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle me-3 fs-4"></i>
+            <div>
+                <p class="mb-0">총 <strong>{{ recommendations|length }}개</strong>의 추천 사항이 있습니다. 추천 사항을 구현하여 AWS 서비스 사용을 최적화하세요.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 서비스별 필터링 버튼 -->
+    <div class="mb-4">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary active filter-btn" data-filter="all">모두 보기</button>
+            {% set services = recommendations|map(attribute='service')|unique|list %}
+            {% for service in services %}
+                <button type="button" class="btn btn-outline-primary filter-btn" data-filter="{{ service }}">{{ service }}</button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 위험도별 필터링 버튼 -->
+    <div class="mb-4">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary active severity-filter-btn" data-filter="all">모든 위험도</button>
+            <button type="button" class="btn btn-outline-danger severity-filter-btn" data-filter="높음">높음</button>
+            <button type="button" class="btn btn-outline-warning severity-filter-btn" data-filter="중간">중간</button>
+            <button type="button" class="btn btn-outline-info severity-filter-btn" data-filter="낮음">낮음</button>
+        </div>
+    </div>
+
+    <!-- 테이블 형식의 추천 사항 목록 (대시보드와 유사한 형태) -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-sortable">
+            <thead>
+                <tr>
+                    <th>서비스</th>
+                    <th>리소스</th>
+                    <th>메시지</th>
+                    <th>위험도</th>
+                    <th>작업</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recommendations %}
+                <tr data-service="{{ rec.service }}" data-severity="{{ rec.severity }}">
+                    <td>{{ rec.service }}</td>
+                    <td>{{ rec.resource }}</td>
+                    <td>{{ rec.message }}</td>
+                    <td>
+                        <span class="badge bg-{{ 'danger' if rec.severity == '높음' else 'warning' if rec.severity == '중간' else 'info' }}">{{ rec.severity }}</span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-rec-{{ loop.index }}">
+                                <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="details-row">
+                    <td colspan="5" class="p-0">
+                        <div class="collapse" id="details-rec-{{ loop.index }}">
+                            <div class="card card-body bg-light border-0 p-3 m-2">
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-muted mb-2"><i class="fas fa-exclamation-triangle me-2"></i>문제점</h6>
+                                    <p class="mb-0">{{ rec.problem }}</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
+                                    <p class="mb-0">{{ rec.impact }}</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
+                                    <ol class="ps-3 mb-0">
+                                        {% for step in rec.steps %}
+                                            <li class="mb-1">{{ step }}</li>
+                                        {% endfor %}
+                                    </ol>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
+                                    <p class="mb-0">{{ rec.benefit }}</p>
+                                </div>
+                                
+                                {% if rec.links %}
+                                <div>
+                                    <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
+                                    <ul class="ps-3 mb-0">
+                                        {% for link in rec.links %}
+                                            <li><a href="{{ link.url }}" target="_blank">{{ link.title }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <h4 class="alert-heading">추천 사항이 없습니다!</h4>
+        <p>현재 AWS 서비스 사용에 대한 추천 사항이 없습니다. 이는 서비스를 최적으로 사용하고 있다는 의미일 수 있습니다.</p>
+    </div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{{ url_for('consolidated_view') }}" class="btn btn-outline-dark">통합 대시보드로 돌아가기</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .table-sortable th {
+        cursor: pointer;
+    }
+    .details-row {
+        background-color: transparent !important;
+    }
+    .filter-btn.active, .severity-filter-btn.active {
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 서비스별 필터링
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const filter = this.getAttribute('data-filter');
+            
+            // 버튼 활성화 상태 변경
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // 테이블 행 필터링
+            const rows = document.querySelectorAll('tbody tr:not(.details-row)');
+            rows.forEach(row => {
+                if (filter === 'all' || row.getAttribute('data-service') === filter) {
+                    row.style.display = '';
+                    // 다음 행(세부 정보 행)도 표시 (단, collapse 상태는 유지)
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow && nextRow.classList.contains('details-row')) {
+                        nextRow.style.display = '';
+                    }
+                } else {
+                    row.style.display = 'none';
+                    // 다음 행(세부 정보 행)도 숨김
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow && nextRow.classList.contains('details-row')) {
+                        nextRow.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+    
+    // 위험도별 필터링
+    const severityFilterButtons = document.querySelectorAll('.severity-filter-btn');
+    severityFilterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const filter = this.getAttribute('data-filter');
+            
+            // 버튼 활성화 상태 변경
+            severityFilterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // 테이블 행 필터링
+            const rows = document.querySelectorAll('tbody tr:not(.details-row)');
+            rows.forEach(row => {
+                if (filter === 'all' || row.getAttribute('data-severity') === filter) {
+                    row.style.display = '';
+                    // 다음 행(세부 정보 행)도 표시 (단, collapse 상태는 유지)
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow && nextRow.classList.contains('details-row')) {
+                        nextRow.style.display = '';
+                    }
+                } else {
+                    row.style.display = 'none';
+                    // 다음 행(세부 정보 행)도 숨김
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow && nextRow.classList.contains('details-row')) {
+                        nextRow.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+    
+    // 테이블 정렬 기능
+    document.querySelectorAll('th').forEach(th => {
+        th.addEventListener('click', () => {
+            const table = th.closest('table');
+            const index = Array.from(th.parentNode.children).indexOf(th);
+            const rows = Array.from(table.querySelectorAll('tbody tr:not(.details-row)'));
+            const detailsRows = Array.from(table.querySelectorAll('tbody tr.details-row'));
+            const direction = th.classList.contains('asc') ? -1 : 1;
+            
+            // 모든 th에서 정렬 클래스 제거
+            table.querySelectorAll('th').forEach(el => {
+                el.classList.remove('asc', 'desc');
+            });
+            
+            // 현재 th에 정렬 클래스 추가
+            th.classList.add(direction === 1 ? 'asc' : 'desc');
+            
+            // 행 정렬
+            rows.sort((a, b) => {
+                const aValue = a.children[index].textContent.trim();
+                const bValue = b.children[index].textContent.trim();
+                return aValue.localeCompare(bValue, 'ko') * direction;
+            });
+            
+            // 정렬된 행을 테이블에 다시 추가
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
+            rows.forEach((row, i) => {
+                tbody.appendChild(row);
+                tbody.appendChild(detailsRows[i]);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

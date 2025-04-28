@@ -1,0 +1,268 @@
+/* Recommendation Card Styling */
+.recommendation-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.recommendation-card .card-header {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    border: none;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.recommendation-card .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.recommendation-card .card-header .severity-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.recommendation-card .card-header .severity-high {
+    background-color: #e74a3b;
+}
+
+.recommendation-card .card-header .severity-medium {
+    background-color: #f6c23e;
+    color: #212529;
+}
+
+.recommendation-card .card-header .severity-low {
+    background-color: #36b9cc;
+}
+
+.recommendation-card .card-body {
+    padding: 1.5rem;
+}
+
+.recommendation-card .resource-info {
+    background-color: #f8f9fc;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #4e73df;
+}
+
+.recommendation-card .resource-info h6 {
+    color: #4e73df;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.recommendation-card .resource-info p {
+    margin-bottom: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+/* Summary message styling */
+.recommendation-card .summary-message {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #1cc88a;
+}
+
+.recommendation-card .summary-message p.lead {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+/* Toggle button styling */
+.recommendation-card .toggle-details {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+}
+
+.recommendation-card .toggle-details:hover {
+    background-color: #4e73df;
+    color: white;
+}
+
+/* Recommendation details styling */
+.recommendation-details {
+    margin-top: 1rem;
+    border-top: 1px solid #e3e6f0;
+    padding-top: 1rem;
+}
+
+/* Expandable section styling */
+.expandable-section {
+    margin-bottom: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.expandable-section .section-header {
+    background-color: #f8f9fc;
+    padding: 0.75rem 1rem;
+    margin: 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.expandable-section .section-header:hover {
+    background-color: #eaecf4;
+}
+
+.expandable-section .toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.expandable-section.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.expandable-section .section-content {
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.expandable-section.expanded .section-content {
+    padding: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.recommendation-card .problem-section,
+.recommendation-card .impact-section,
+.recommendation-card .steps-section,
+.recommendation-card .benefit-section,
+.recommendation-card .references-section {
+    margin-bottom: 1rem;
+}
+
+.recommendation-card .section-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+    font-weight: 600;
+    color: #5a5c69;
+}
+
+.recommendation-card .section-title i {
+    margin-right: 0.5rem;
+    color: #4e73df;
+}
+
+.recommendation-card .steps-list {
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+}
+
+.recommendation-card .steps-list li {
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.recommendation-card .steps-list li:last-child {
+    margin-bottom: 0;
+}
+
+.recommendation-card .references-list {
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+    list-style-type: none;
+}
+
+.recommendation-card .references-list li {
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.recommendation-card .references-list li:last-child {
+    margin-bottom: 0;
+}
+
+.recommendation-card .references-list li::before {
+    content: "📚";
+    position: absolute;
+    left: -1.5rem;
+    top: 0;
+}
+
+.recommendation-card .references-list a {
+    color: #4e73df;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.recommendation-card .references-list a:hover {
+    color: #224abe;
+    text-decoration: underline;
+}
+
+.recommendation-card .card-footer {
+    background-color: #f8f9fc;
+    border-top: 1px solid #e3e6f0;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.recommendation-card .btn-later {
+    background-color: transparent;
+    border-color: #d1d3e2;
+    color: #6e707e;
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 500;
+    margin-right: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.recommendation-card .btn-later:hover {
+    background-color: #f8f9fc;
+    border-color: #858796;
+    color: #5a5c69;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .recommendation-card .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .recommendation-card .card-header .severity-badge {
+        margin-top: 0.5rem;
+    }
+    
+    .recommendation-card .card-footer {
+        flex-direction: column;
+    }
+    
+    .recommendation-card .btn-later {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}로그인 - AWS 콘솔 체크{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">AWS 콘솔 체크 로그인</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">사용자 이름</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">비밀번호</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <hr>
+                    <h5>AWS 자격 증명</h5>
+                    <div class="mb-3">
+                        <label for="aws_access_key" class="form-label">AWS 액세스 키 ID</label>
+                        <input type="text" class="form-control" id="aws_access_key" name="aws_access_key" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="aws_secret_key" class="form-label">AWS 시크릿 액세스 키</label>
+                        <input type="password" class="form-control" id="aws_secret_key" name="aws_secret_key" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">로그인</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-muted">
+                <small>* AWS 자격 증명은 안전하게 처리됩니다. 세션에만 저장되며 데이터베이스에 저장되지 않습니다.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
