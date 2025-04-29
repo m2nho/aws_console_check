@@ -74,7 +74,7 @@ set AWS_DEFAULT_REGION=ap-northeast-2
 
 5. 애플리케이션 실행
 ```bash
-python app.py
+python run.py
 ```
 
 6. 웹 브라우저에서 `http://localhost:5000` 접속
@@ -116,9 +116,14 @@ python app.py
 
 ```
 .
-├── app.py                  # 메인 애플리케이션 파일
+├── app/                    # 애플리케이션 패키지
+│   ├── __init__.py         # 앱 초기화
+│   ├── models/             # 데이터 모델
+│   ├── routes/             # 라우트 정의
+│   └── services/           # 서비스 로직
 ├── config.py               # 설정 파일
 ├── requirements.txt        # 의존성 목록
+├── run.py                  # 애플리케이션 실행 스크립트
 ├── run_tests.py            # 테스트 실행 스크립트
 ├── static/                 # 정적 파일 (CSS, JS)
 │   ├── css/                # CSS 파일

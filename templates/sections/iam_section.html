@@ -1,0 +1,140 @@
+<!-- IAM 섹션 -->
+<div class="card mb-4 service-section" id="iam-section">
+    <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#iam-content" aria-expanded="true">
+        <h5 class="mb-0">
+            <i class="fas fa-users-cog me-2"></i> {{ services.iam.name }}
+        </h5>
+        <span class="toggle-icon">
+            <i class="fas fa-chevron-down"></i>
+        </span>
+    </div>
+    <div class="collapse show" id="iam-content">
+        <div class="card-body">
+            {% if all_services_data.iam.error is defined %}
+                <div class="alert alert-danger">{{ all_services_data.iam.error }}</div>
+            {% elif all_services_data.iam.users|default([])|length > 0 %}
+                <!-- IAM Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 사용자</h5>
+                                <p class="card-text display-6">{{ all_services_data.iam.users|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card {% if all_services_data.iam.users|length > 5 %}bg-warning text-dark{% else %}bg-success text-white{% endif %}">
+                            <div class="card-body">
+                                <h5 class="card-title">보안 상태</h5>
+                                <p class="card-text">
+                                    {% if all_services_data.iam.users|length > 5 %}
+                                        <i class="fas fa-exclamation-triangle"></i> 사용자가 5명 이상입니다. 미사용 계정을 검토하세요.
+                                    {% else %}
+                                        <i class="fas fa-check-circle"></i> 사용자 수가 적절합니다.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sortable">
+                        <thead>
+                            <tr>
+                                <th>사용자 이름</th>
+                                <th>생성일</th>
+                                <th>위험도</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in all_services_data.iam.users %}
+                            <tr>
+                                <td>{{ user.name }}</td>
+                                <td>{{ user.created }}</td>
+                                <td>
+                                    {% set rec_key = 'iam:' ~ user.name %}
+                                    {% if resource_recommendations[rec_key] is defined %}
+                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
+                                    {% elif all_services_data.iam.users|length > 5 %}
+                                        <span class="badge bg-danger">높음</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">없음</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-iam-{{ loop.index }}">
+                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="details-row">
+                                <td colspan="4" class="p-0">
+                                    <div class="collapse" id="details-iam-{{ loop.index }}">
+                                        <div class="card card-body bg-light border-0 p-3 m-2">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-users-cog me-2"></i>사용자 정보</h6>
+                                                <p class="mb-1"><strong>사용자 이름:</strong> {{ user.name }}</p>
+                                                <p class="mb-1"><strong>사용자 ID:</strong> {{ user.id }}</p>
+                                                <p class="mb-0"><strong>생성일:</strong> {{ user.created }}</p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
+                                                </h6>
+                                                <p class="mb-0">
+                                                    IAM 사용자 {{ user.name }}의 보안 설정이 최적화되지 않았을 수 있습니다.
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
+                                                <p class="mb-0">
+                                                    IAM 사용자의 보안 설정이 최적화되지 않으면 계정 침해 위험이 증가하고, 불필요한 권한으로 인해 보안 취약점이 발생할 수 있습니다.
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
+                                                <ol class="ps-3 mb-0">
+                                                    <li class="mb-1">사용자에게 MFA를 활성화합니다.</li>
+                                                    <li class="mb-1">액세스 키를 정기적으로 교체합니다.</li>
+                                                    <li class="mb-1">최소 권한 원칙을 적용하여 필요한 권한만 부여합니다.</li>
+                                                    <li class="mb-1">장기간 사용하지 않은 자격 증명이 있는지 확인하고 제거합니다.</li>
+                                                    <li class="mb-1">가능한 경우 개별 IAM 사용자 대신 IAM 역할과 페더레이션을 사용합니다.</li>
+                                                </ol>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
+                                                <p class="mb-0">
+                                                    IAM 사용자의 보안 설정을 최적화하면 계정 침해 위험을 줄이고, 최소 권한 원칙을 적용하여 보안 태세를 강화할 수 있습니다.
+                                                </p>
+                                            </div>
+                                            
+                                            <div>
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
+                                                <ul class="ps-3 mb-0">
+                                                    <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html" target="_blank">IAM 사용자에 대한 MFA 활성화</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html" target="_blank">액세스 키 관리</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html" target="_blank">IAM 모범 사례</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">IAM 사용자가 없습니다.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>

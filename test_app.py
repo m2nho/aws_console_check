@@ -76,32 +76,7 @@ class FlaskAppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue('/login' in response.location)
     
-    # Test removed as the /service route has been removed
-    # @patch('boto3.client')
-    # def test_aws_region_validation(self, mock_boto_client):
-    #     """Test that invalid AWS region is handled properly"""
-    #     # First login
-    #     self.client.post('/login', data={
-    #         'username': 'admin',
-    #         'password': 'admin',
-    #         'aws_access_key': 'test_access_key',
-    #         'aws_secret_key': 'test_secret_key'
-    #     })
-    #     
-    #     # Set an invalid region
-    #     with self.client.session_transaction() as sess:
-    #         app.config['AWS_DEFAULT_REGION'] = 'invalid-region-format'
-    #     
-    #     # Access a service
-    #     response = self.client.get('/service/ec2', follow_redirects=True)
-    #     
-    #     # Verify that we're using the default region instead of the invalid one
-    #     mock_boto_client.assert_called_with(
-    #         'ec2',
-    #         aws_access_key_id='test_access_key',
-    #         aws_secret_access_key='test_secret_key',
-    #         region_name='ap-northeast-2'  # Default region
-    #     )
+
 
     def test_recommendations_requires_login(self):
         """Test that the recommendations page requires login"""
@@ -154,39 +129,7 @@ class FlaskAppTestCase(unittest.TestCase):
         self.assertIn('overflow: hidden', css_content)
         self.assertIn('pointer-events: auto', css_content)
         
-    # Test removed as the /service route has been removed
-    # @patch('boto3.client')
-    # def test_service_details_redirects_to_consolidated(self, mock_boto_client):
-    #     """Test that the service details page redirects to consolidated view"""
-    #     # First login
-    #     self.client.post('/login', data={
-    #         'username': 'admin',
-    #         'password': 'admin',
-    #         'aws_access_key': 'test_access_key',
-    #         'aws_secret_key': 'test_secret_key'
-    #     })
-    #     
-    #     # Access service details page
-    #     response = self.client.get('/service/ec2', follow_redirects=False)
-    #     self.assertEqual(response.status_code, 302)
-    #     self.assertTrue('/consolidated' in response.location)
-        
-    # Test removed as the /dashboard route has been removed
-    # @patch('boto3.client')
-    # def test_dashboard_redirects_to_consolidated(self, mock_boto_client):
-    #     """Test that the dashboard page redirects to consolidated view"""
-    #     # First login
-    #     self.client.post('/login', data={
-    #         'username': 'admin',
-    #         'password': 'admin',
-    #         'aws_access_key': 'test_access_key',
-    #         'aws_secret_key': 'test_secret_key'
-    #     })
-    #     
-    #     # Access dashboard page
-    #     response = self.client.get('/dashboard', follow_redirects=False)
-    #     self.assertEqual(response.status_code, 302)
-    #     self.assertTrue('/consolidated' in response.location)
+
         
     def test_js_includes_toggle_event_handling(self):
         """Test that the JavaScript file includes the toggle event handling"""
@@ -264,44 +207,7 @@ class FlaskAppTestCase(unittest.TestCase):
             self.assertIn('모두 보기', html_content)
             self.assertIn('세부 작업 보기', html_content)
 
-    # Test removed as the /service route has been removed
-    # @patch('boto3.client')
-    # def test_checklist_removed(self, mock_boto_client):
-    #     """Test that the checklist section has been removed"""
-    #     # Mock the boto3 client to return some test data
-    #     mock_boto_client.return_value.describe_instances.return_value = {
-    #         'Reservations': [{
-    #             'Instances': [{
-    #                 'InstanceId': 'i-12345',
-    #                 'InstanceType': 't2.micro',
-    #                 'State': {'Name': 'stopped'},
-    #                 'Placement': {'AvailabilityZone': 'ap-northeast-2a'}
-    #             }]
-    #         }]
-    #     }
-    #     
-    #     # First login
-    #     self.client.post('/login', data={
-    #         'username': 'admin',
-    #         'password': 'admin',
-    #         'aws_access_key': 'test_access_key',
-    #         'aws_secret_key': 'test_secret_key'
-    #     })
-    #     
-    #     # Access service details page
-    #     response = self.client.get('/service/ec2', follow_redirects=True)
-    #     self.assertEqual(response.status_code, 200)
-    #     
-    #     # Check that the checklist section is not present
-    #     html_content = response.data.decode('utf-8')
-    #     self.assertNotIn('체크리스트</h5>', html_content)
-    #     self.assertNotIn('card-header bg-primary text-white', html_content)
-    #     self.assertNotIn('accordion-collapse collapse show', html_content)
-    #     
-    #     # Check that the button style has been updated
-    #     self.assertIn('btn-outline-primary', html_content)
-    #     self.assertIn('btn-outline-dark', html_content)
-    #     self.assertNotIn('btn-secondary', html_content)
+
 
     def test_checklist_toggle_js_exists_and_works(self):
         """Test that the checklist-toggle.js file exists and contains the necessary functionality"""
@@ -535,26 +441,7 @@ class FlaskAppTestCase(unittest.TestCase):
         self.assertIn('실행 중', html_content)
         self.assertIn('ap-northeast-2a', html_content)
         
-    # Test removed as the /dashboard route has been removed
-    # def test_dashboard_has_link_to_consolidated_view(self):
-    #     """Test that the dashboard has a link to the consolidated view"""
-    #     # First login
-    #     self.client.post('/login', data={
-    #         'username': 'admin',
-    #         'password': 'admin',
-    #         'aws_access_key': 'test_access_key',
-    #         'aws_secret_key': 'test_secret_key'
-    #     })
-    #     
-    #     # Access dashboard
-    #     response = self.client.get('/dashboard', follow_redirects=True)
-    #     self.assertEqual(response.status_code, 200)
-    #     html_content = response.data.decode('utf-8')
-    #     
-    #     # Check for the link to consolidated view
-    #     self.assertIn('통합 대시보드', html_content)
-    #     self.assertIn('url_for(\'consolidated_view\')', html_content)
-    #     self.assertIn('새로운 기능', html_content)
+
         
     def test_navbar_has_link_to_consolidated_view(self):
         """Test that the navbar has a link to the consolidated view"""
@@ -577,64 +464,7 @@ class FlaskAppTestCase(unittest.TestCase):
         # Check that there is no dashboard link
         self.assertNotIn('<a class="nav-link" href="{{ url_for(\'dashboard\') }}">대시보드</a>', html_content)
         
-    # Test removed as the /service route has been removed
-    # @patch('boto3.client')
-    # def test_ec2_instance_optimization_recommendation_display(self, mock_boto_client):
-    #     """Test that the EC2 instance optimization recommendation is displayed correctly"""
-    #     # Mock the boto3 client to return test data with a specific instance ID
-    #     mock_boto_client.return_value.describe_instances.return_value = {
-    #         'Reservations': [{
-    #             'Instances': [{
-    #                 'InstanceId': 'i-0758f1823d43bfada',
-    #                 'InstanceType': 't3.medium',
-    #                 'State': {'Name': 'running'},
-    #                 'Placement': {'AvailabilityZone': 'ap-northeast-2a'}
-    #             }]
-    #         }]
-    #     }
-    #     mock_boto_client.return_value.list_buckets.return_value = {'Buckets': []}
-    #     mock_boto_client.return_value.describe_db_instances.return_value = {'DBInstances': []}
-    #     mock_boto_client.return_value.list_functions.return_value = {'Functions': []}
-    #     mock_boto_client.return_value.describe_alarms.return_value = {'MetricAlarms': []}
-    #     mock_boto_client.return_value.list_users.return_value = {'Users': []}
-    #     
-    #     # First login
-    #     self.client.post('/login', data={
-    #         'username': 'admin',
-    #         'password': 'admin',
-    #         'aws_access_key': 'test_access_key',
-    #         'aws_secret_key': 'test_secret_key'
-    #     })
-    #     
-    #     # Access service details page for EC2
-    #     response = self.client.get('/service/ec2', follow_redirects=True)
-    #     self.assertEqual(response.status_code, 200)
-    #     html_content = response.data.decode('utf-8')
-    #     
-    #     # Check for the specific instance ID
-    #     self.assertIn('i-0758f1823d43bfada', html_content)
-    #     
-    #     # Check for the new dropdown style elements
-    #     self.assertIn('collapse mt-3', html_content)
-    #     self.assertIn('card card-body bg-light border-0 p-3', html_content)
-    #     self.assertIn('fw-bold text-muted mb-2', html_content)
-    #     
-    #     # Check for the specific content from the requirements
-    #     self.assertIn('EC2 인스턴스 i-0758f1823d43bfada가 t3.medium 타입으로 실행 중입니다', html_content)
-    #     self.assertIn('인스턴스 타입이 워크로드에 최적화되지 않으면 성능 저하나 불필요한 비용이 발생할 수 있습니다', html_content)
-    #     self.assertIn('CloudWatch 지표를 확인하여 현재 인스턴스의 CPU, 메모리, 네트워크 사용량을 분석합니다', html_content)
-    #     self.assertIn('AWS Compute Optimizer 권장 사항을 확인합니다', html_content)
-    #     self.assertIn('워크로드에 적합한 인스턴스 타입으로 변경을 계획합니다', html_content)
-    #     self.assertIn('인스턴스를 중지하고 인스턴스 타입을 변경한 후 다시 시작합니다', html_content)
-    #     self.assertIn('적절한 인스턴스 타입을 선택하면 성능을 향상시키고 비용을 최적화할 수 있습니다', html_content)
-    #     self.assertIn('EC2 인스턴스 크기 조정 가이드', html_content)
-    #     self.assertIn('AWS Compute Optimizer', html_content)
-    #     
-    #     # Verify that the old elements are not present
-    #     self.assertNotIn('expandable-section', html_content)
-    #     self.assertNotIn('section-header', html_content)
-    #     self.assertNotIn('section-content', html_content)
-    #     self.assertNotIn('toggle-icon', html_content)
+
     @patch('boto3.client')
     def test_consolidated_view_has_detail_buttons(self, mock_boto_client):
         """Test that the consolidated view has 'see detail' buttons"""
@@ -849,40 +679,7 @@ class FlaskAppTestCase(unittest.TestCase):
         self.assertIn('기대 효과</h6>', recommendations_html)
         self.assertIn('참고 자료</h6>', recommendations_html)
 
-    # Test removed as the /service route has been removed
-    # @patch('boto3.client')
-    # def test_service_details_includes_updated_css(self, mock_boto_client):
-    #     """Test that the service_details.html page includes the updated CSS file"""
-    #     # Mock the boto3 client to return test data
-    #     mock_boto_client.return_value.describe_instances.return_value = {
-    #         'Reservations': [{
-    #             'Instances': [{
-    #                 'InstanceId': 'i-0758f1823d43bfada',
-    #                 'InstanceType': 't3.medium',
-    #                 'State': {'Name': 'running'},
-    #                 'Placement': {'AvailabilityZone': 'ap-northeast-2a'}
-    #             }]
-    #         }]
-    #     }
-    #     
-    #     # First login
-    #     self.client.post('/login', data={
-    #         'username': 'admin',
-    #         'password': 'admin',
-    #         'aws_access_key': 'test_access_key',
-    #         'aws_secret_key': 'test_secret_key'
-    #     })
-    #     
-    #     # Access service details page
-    #     response = self.client.get('/service/ec2', follow_redirects=True)
-    #     self.assertEqual(response.status_code, 200)
-    #     html_content = response.data.decode('utf-8')
-    #     
-    #     # Check that the updated CSS file is included
-    #     self.assertIn('recommendation-card-updated.css', html_content)
-    #     
-    #     # Check that the old CSS file is not included
-    #     self.assertNotIn('recommendation-card.css', html_content)
+
 if __name__ == '__main__':
     unittest.main()
 
@@ -1003,8 +800,8 @@ if __name__ == '__main__':
         response = self.client.get('/consolidated', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         
-        # Import the aws_services dictionary from app.py
-        from app import aws_services
+        # Import the aws_services dictionary from app.services.aws_services
+        from app.services.aws_services import aws_services
         
         # Check that the new services are in the dictionary
         self.assertIn('dynamodb', aws_services)

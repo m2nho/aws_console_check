@@ -1,0 +1,187 @@
+<!-- RDS 섹션 -->
+<div class="card mb-4 service-section" id="rds-section">
+    <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#rds-content" aria-expanded="true">
+        <h5 class="mb-0">
+            <i class="fas fa-database me-2"></i> {{ services.rds.name }}
+        </h5>
+        <span class="toggle-icon">
+            <i class="fas fa-chevron-down"></i>
+        </span>
+    </div>
+    <div class="collapse show" id="rds-content">
+        <div class="card-body">
+            {% if all_services_data.rds.error is defined %}
+                <div class="alert alert-danger">{{ all_services_data.rds.error }}</div>
+            {% elif all_services_data.rds.instances|default([])|length > 0 %}
+                <!-- RDS Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 인스턴스</h5>
+                                <p class="card-text display-6">{{ all_services_data.rds.instances|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">사용 가능</h5>
+                                <p class="card-text display-6">{{ all_services_data.rds.instances|selectattr('status', 'equalto', 'available')|list|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">엔진 종류</h5>
+                                <p class="card-text">{{ all_services_data.rds.instances|map(attribute='engine')|list|unique|list|length }} 종류</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body">
+                                <h5 class="card-title">인스턴스 클래스</h5>
+                                <p class="card-text">{{ all_services_data.rds.instances|map(attribute='size')|list|unique|list|length }} 종류</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sortable">
+                        <thead>
+                            <tr>
+                                <th>인스턴스 ID</th>
+                                <th>엔진</th>
+                                <th>상태</th>
+                                <th>인스턴스 클래스</th>
+                                <th>위험도</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for instance in all_services_data.rds.instances %}
+                            <tr>
+                                <td>{{ instance.id }}</td>
+                                <td>{{ instance.engine }}</td>
+                                <td>
+                                    {% if instance.status == 'available' %}
+                                        <span class="badge bg-success">사용 가능</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ instance.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ instance.size }}</td>
+                                <td>
+                                    {% set rec_key = 'rds:' ~ instance.id %}
+                                    {% if resource_recommendations[rec_key] is defined %}
+                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">없음</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-rds-{{ loop.index }}">
+                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="details-row">
+                                <td colspan="6" class="p-0">
+                                    <div class="collapse" id="details-rds-{{ loop.index }}">
+                                        <div class="card card-body bg-light border-0 p-3 m-2">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-database me-2"></i>데이터베이스 정보</h6>
+                                                <p class="mb-1"><strong>인스턴스 ID:</strong> {{ instance.id }}</p>
+                                                <p class="mb-1"><strong>엔진:</strong> {{ instance.engine }}</p>
+                                                <p class="mb-1"><strong>인스턴스 클래스:</strong> {{ instance.size }}</p>
+                                                <p class="mb-0"><strong>상태:</strong> 
+                                                    {% if instance.status == 'available' %}
+                                                        <span class="badge bg-success">사용 가능</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">{{ instance.status }}</span>
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
+                                                </h6>
+                                                <p class="mb-0">
+                                                    {% if not instance.id.startswith('aurora-') %}
+                                                        RDS 인스턴스 {{ instance.id }}가 Aurora가 아닌 {{ instance.engine }} 엔진을 사용하고 있습니다.
+                                                    {% else %}
+                                                        RDS 인스턴스 {{ instance.id }}의 백업 및 고가용성 설정이 최적화되지 않았을 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
+                                                <p class="mb-0">
+                                                    {% if not instance.id.startswith('aurora-') %}
+                                                        Aurora는 기존 MySQL 및 PostgreSQL 데이터베이스보다 최대 5배 향상된 성능과 향상된 가용성을 제공합니다.
+                                                    {% else %}
+                                                        적절한 백업 및 고가용성 설정이 없으면 데이터 손실 위험이 증가하고 장애 발생 시 복구 시간이 길어질 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
+                                                <ol class="ps-3 mb-0">
+                                                    {% if not instance.id.startswith('aurora-') %}
+                                                        <li class="mb-1">AWS 콘솔에서 RDS 서비스로 이동합니다.</li>
+                                                        <li class="mb-1">스냅샷을 생성하여 현재 데이터베이스를 백업합니다.</li>
+                                                        <li class="mb-1">스냅샷에서 Aurora 데이터베이스로 복원합니다.</li>
+                                                        <li class="mb-1">애플리케이션 연결 문자열을 새 Aurora 엔드포인트로 업데이트합니다.</li>
+                                                        <li class="mb-1">마이그레이션이 완료되면 원본 RDS 인스턴스를 삭제합니다.</li>
+                                                    {% else %}
+                                                        <li class="mb-1">자동 백업이 활성화되어 있고 적절한 보존 기간이 설정되어 있는지 확인합니다.</li>
+                                                        <li class="mb-1">다중 AZ 배포를 설정하여 고가용성을 확보합니다.</li>
+                                                        <li class="mb-1">데이터베이스 인스턴스와 스냅샷이 암호화되어 있는지 확인합니다.</li>
+                                                    {% endif %}
+                                                </ol>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
+                                                <p class="mb-0">
+                                                    {% if not instance.id.startswith('aurora-') %}
+                                                        Aurora로 마이그레이션하면 성능이 향상되고, 자동 확장 기능을 활용할 수 있으며, 운영 오버헤드가 감소합니다.
+                                                    {% else %}
+                                                        적절한 백업 및 고가용성 설정을 통해 데이터 보호를 강화하고 서비스 중단 시간을 최소화할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div>
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
+                                                <ul class="ps-3 mb-0">
+                                                    {% if not instance.id.startswith('aurora-') %}
+                                                        <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Aurora.Migrating.html" target="_blank">Aurora로 마이그레이션 가이드</a></li>
+                                                        <li><a href="https://aws.amazon.com/rds/aurora/" target="_blank">Amazon Aurora 소개</a></li>
+                                                    {% else %}
+                                                        <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html" target="_blank">RDS 백업 및 복원</a></li>
+                                                        <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html" target="_blank">RDS 다중 AZ 배포</a></li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">RDS 인스턴스가 없습니다.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>

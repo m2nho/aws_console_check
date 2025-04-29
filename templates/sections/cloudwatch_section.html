@@ -1,0 +1,183 @@
+<!-- CloudWatch 섹션 -->
+<div class="card mb-4 service-section" id="cloudwatch-section">
+    <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#cloudwatch-content" aria-expanded="true">
+        <h5 class="mb-0">
+            <i class="fas fa-chart-line me-2"></i> {{ services.cloudwatch.name }}
+        </h5>
+        <span class="toggle-icon">
+            <i class="fas fa-chevron-down"></i>
+        </span>
+    </div>
+    <div class="collapse show" id="cloudwatch-content">
+        <div class="card-body">
+            {% if all_services_data.cloudwatch.error is defined %}
+                <div class="alert alert-danger">{{ all_services_data.cloudwatch.error }}</div>
+            {% elif all_services_data.cloudwatch.alarms|default([])|length > 0 %}
+                <!-- CloudWatch Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 경보</h5>
+                                <p class="card-text display-6">{{ all_services_data.cloudwatch.alarms|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">정상 상태</h5>
+                                <p class="card-text display-6">{{ all_services_data.cloudwatch.alarms|selectattr('state', 'equalto', 'OK')|list|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">경보 상태</h5>
+                                <p class="card-text display-6">{{ all_services_data.cloudwatch.alarms|selectattr('state', 'equalto', 'ALARM')|list|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sortable">
+                        <thead>
+                            <tr>
+                                <th>경보 이름</th>
+                                <th>상태</th>
+                                <th>지표</th>
+                                <th>위험도</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alarm in all_services_data.cloudwatch.alarms %}
+                            <tr>
+                                <td>{{ alarm.name }}</td>
+                                <td>
+                                    {% if alarm.state == 'OK' %}
+                                        <span class="badge bg-success">정상</span>
+                                    {% elif alarm.state == 'ALARM' %}
+                                        <span class="badge bg-danger">경보</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ alarm.state }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ alarm.metric }}</td>
+                                <td>
+                                    {% set rec_key = 'cloudwatch:' ~ alarm.name %}
+                                    {% if resource_recommendations[rec_key] is defined %}
+                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
+                                    {% elif alarm.state == 'ALARM' %}
+                                        <span class="badge bg-danger">높음</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">없음</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-cloudwatch-{{ loop.index }}">
+                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="details-row">
+                                <td colspan="5" class="p-0">
+                                    <div class="collapse" id="details-cloudwatch-{{ loop.index }}">
+                                        <div class="card card-body bg-light border-0 p-3 m-2">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>경보 정보</h6>
+                                                <p class="mb-1"><strong>경보 이름:</strong> {{ alarm.name }}</p>
+                                                <p class="mb-1"><strong>지표:</strong> {{ alarm.metric }}</p>
+                                                <p class="mb-0"><strong>상태:</strong> 
+                                                    {% if alarm.state == 'OK' %}
+                                                        <span class="badge bg-success">정상</span>
+                                                    {% elif alarm.state == 'ALARM' %}
+                                                        <span class="badge bg-danger">경보</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">{{ alarm.state }}</span>
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
+                                                </h6>
+                                                <p class="mb-0">
+                                                    {% if alarm.state == 'ALARM' %}
+                                                        CloudWatch 경보 {{ alarm.name }}가 현재 경보 상태입니다.
+                                                    {% else %}
+                                                        CloudWatch 경보 설정이 최적화되지 않았을 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
+                                                <p class="mb-0">
+                                                    {% if alarm.state == 'ALARM' %}
+                                                        경보 상태는 모니터링 중인 리소스에 문제가 있음을 나타내며, 즉시 조사하지 않으면 서비스 중단이나 성능 저하가 발생할 수 있습니다.
+                                                    {% else %}
+                                                        경보 설정이 최적화되지 않으면 중요한 문제를 감지하지 못하거나 불필요한 알림이 발생할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
+                                                <ol class="ps-3 mb-0">
+                                                    {% if alarm.state == 'ALARM' %}
+                                                        <li class="mb-1">AWS 콘솔에서 CloudWatch 서비스로 이동합니다.</li>
+                                                        <li class="mb-1">경보 {{ alarm.name }}를 선택합니다.</li>
+                                                        <li class="mb-1">경보 세부 정보를 확인하여 문제의 원인을 파악합니다.</li>
+                                                        <li class="mb-1">관련 리소스를 확인하고 필요한 조치를 취합니다.</li>
+                                                        <li class="mb-1">문제가 해결되면 경보가 자동으로 정상 상태로 돌아가는지 확인합니다.</li>
+                                                    {% else %}
+                                                        <li class="mb-1">경보 임계값이 워크로드에 적합한지 주기적으로 검토합니다.</li>
+                                                        <li class="mb-1">경보 알림이 적절한 대상(이메일, SMS, 자동화 등)으로 설정되어 있는지 확인합니다.</li>
+                                                        <li class="mb-1">여러 조건을 조합한 복합 경보를 활용하여 오탐을 줄입니다.</li>
+                                                        <li class="mb-1">중요한 리소스에 대한 추가 경보를 설정합니다.</li>
+                                                    {% endif %}
+                                                </ol>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
+                                                <p class="mb-0">
+                                                    {% if alarm.state == 'ALARM' %}
+                                                        경보 상태의 원인을 신속하게 해결하면 서비스 중단을 최소화하고 성능 문제를 해결할 수 있습니다.
+                                                    {% else %}
+                                                        적절한 경보 설정을 통해 문제를 조기에 감지하고 대응하여 서비스 가용성과 성능을 향상시킬 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div>
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
+                                                <ul class="ps-3 mb-0">
+                                                    {% if alarm.state == 'ALARM' %}
+                                                        <li><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html" target="_blank">CloudWatch 경보 문제 해결</a></li>
+                                                    {% else %}
+                                                        <li><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html" target="_blank">CloudWatch 경보 생성 가이드</a></li>
+                                                        <li><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Composite_Alarm.html" target="_blank">복합 경보 생성</a></li>
+                                                    {% endif %}
+                                                    <li><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html" target="_blank">CloudWatch 개념</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">CloudWatch 경보가 없습니다.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>

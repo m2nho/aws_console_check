@@ -1,0 +1,181 @@
+<!-- API Gateway 섹션 -->
+<div class="card mb-4 service-section" id="apigateway-section">
+    <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#apigateway-content" aria-expanded="true">
+        <h5 class="mb-0">
+            <i class="fas fa-network-wired me-2"></i> {{ services.apigateway.name }}
+        </h5>
+        <span class="toggle-icon">
+            <i class="fas fa-chevron-down"></i>
+        </span>
+    </div>
+    <div class="collapse show" id="apigateway-content">
+        <div class="card-body">
+            {% if all_services_data.apigateway.error is defined %}
+                <div class="alert alert-danger">{{ all_services_data.apigateway.error }}</div>
+            {% elif all_services_data.apigateway.apis|default([])|length > 0 %}
+                <!-- API Gateway Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 API</h5>
+                                <p class="card-text display-6">{{ all_services_data.apigateway.apis|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">총 스테이지</h5>
+                                <p class="card-text display-6">{{ all_services_data.apigateway.apis|sum(attribute='stages')|int }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body">
+                                <h5 class="card-title">API 키 필요</h5>
+                                <p class="card-text display-6">{{ all_services_data.apigateway.apis|selectattr('api_key_required', 'equalto', True)|list|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sortable">
+                        <thead>
+                            <tr>
+                                <th>API 이름</th>
+                                <th>ID</th>
+                                <th>스테이지 수</th>
+                                <th>API 키 필요</th>
+                                <th>생성일</th>
+                                <th>위험도</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for api in all_services_data.apigateway.apis %}
+                            <tr>
+                                <td>{{ api.name }}</td>
+                                <td>{{ api.id }}</td>
+                                <td>{{ api.stages }}</td>
+                                <td>
+                                    {% if api.api_key_required %}
+                                        <span class="badge bg-success">예</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">아니오</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ api.created_date }}</td>
+                                <td>
+                                    {% set rec_key = 'apigateway:' ~ api.name %}
+                                    {% if resource_recommendations[rec_key] is defined %}
+                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">없음</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-apigateway-{{ loop.index }}">
+                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="details-row">
+                                <td colspan="7" class="p-0">
+                                    <div class="collapse" id="details-apigateway-{{ loop.index }}">
+                                        <div class="card card-body bg-light border-0 p-3 m-2">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-network-wired me-2"></i>API 정보</h6>
+                                                <p class="mb-1"><strong>API 이름:</strong> {{ api.name }}</p>
+                                                <p class="mb-1"><strong>ID:</strong> {{ api.id }}</p>
+                                                <p class="mb-1"><strong>설명:</strong> {{ api.description }}</p>
+                                                <p class="mb-1"><strong>스테이지 수:</strong> {{ api.stages }}</p>
+                                                <p class="mb-1"><strong>API 키 필요:</strong> 
+                                                    {% if api.api_key_required %}
+                                                        <span class="badge bg-success">예</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">아니오</span>
+                                                    {% endif %}
+                                                </p>
+                                                <p class="mb-0"><strong>생성일:</strong> {{ api.created_date }}</p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
+                                                </h6>
+                                                <p class="mb-0">
+                                                    {% if not api.api_key_required %}
+                                                        API Gateway {{ api.name }}에 API 키가 필요하지 않아 보안이 취약할 수 있습니다.
+                                                    {% else %}
+                                                        API Gateway {{ api.name }}의 설정이 최적화되지 않았을 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
+                                                <p class="mb-0">
+                                                    {% if not api.api_key_required %}
+                                                        API 키가 없으면 누구나 API에 접근할 수 있어 무단 사용, 과도한 사용 또는 DoS 공격에 취약할 수 있습니다.
+                                                    {% else %}
+                                                        API Gateway 설정이 최적화되지 않으면 성능 저하나 불필요한 비용이 발생할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
+                                                <ol class="ps-3 mb-0">
+                                                    {% if not api.api_key_required %}
+                                                        <li class="mb-1">AWS 콘솔에서 API Gateway 서비스로 이동합니다.</li>
+                                                        <li class="mb-1">API {{ api.name }}를 선택합니다.</li>
+                                                        <li class="mb-1">리소스 섹션에서 메서드를 선택합니다.</li>
+                                                        <li class="mb-1">메서드 요청을 편집하고 'API 키 필요' 옵션을 활성화합니다.</li>
+                                                        <li class="mb-1">API 키를 생성하고 사용량 계획을 설정합니다.</li>
+                                                        <li class="mb-1">API를 다시 배포합니다.</li>
+                                                    {% else %}
+                                                        <li class="mb-1">캐싱을 활성화하여 응답 시간을 개선합니다.</li>
+                                                        <li class="mb-1">사용량 계획을 설정하여 API 사용을 제한합니다.</li>
+                                                        <li class="mb-1">CloudWatch 로깅을 활성화하여 API 사용을 모니터링합니다.</li>
+                                                        <li class="mb-1">WAF를 통합하여 추가 보안 계층을 제공합니다.</li>
+                                                    {% endif %}
+                                                </ol>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
+                                                <p class="mb-0">
+                                                    {% if not api.api_key_required %}
+                                                        API 키를 요구하면 API 사용을 추적하고, 제한하고, 무단 접근을 방지할 수 있습니다.
+                                                    {% else %}
+                                                        API Gateway 설정을 최적화하면 성능을 향상시키고 비용을 절감할 수 있습니다.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div>
+                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
+                                                <ul class="ps-3 mb-0">
+                                                    <li><a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-setup-api-key-with-console.html" target="_blank">API Gateway API 키 설정</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-usage-plans.html" target="_blank">API Gateway 사용량 계획 생성</a></li>
+                                                    <li><a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html" target="_blank">API Gateway 캐싱 활성화</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">API Gateway API가 없습니다.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
