@@ -4,9 +4,8 @@ AWS 서비스 사용 현황을 확인하고 최적화 추천 사항을 제공하
 
 ## 기능 (Features)
 
-- 한국어 인터페이스 제공 (Korean language interface)
 - AWS 자격 증명을 통한 안전한 로그인 (Secure login through AWS credentials)
-- 실시간 AWS 서비스 사용 현황 모니터링 (Real-time AWS service usage monitoring)
+- AWS 서비스 사용 현황 모니터링 (Real-time AWS service usage monitoring)
 - 서비스별 최적화 추천 사항 제공 (Service-specific optimization recommendations)
 - 통합 대시보드 뷰 (Consolidated dashboard view)
 - 상세한 리소스 분석 (Detailed resource analysis)
@@ -41,7 +40,7 @@ AWS 서비스 사용 현황을 확인하고 최적화 추천 사항을 제공하
 
 1. 저장소 클론
 ```bash
-git clone https://github.com/yourusername/aws-console-check.git
+git clone https://github.com/m2nho/aws-console-check.git
 cd aws-console-check
 ```
 
@@ -94,6 +93,7 @@ python run.py
    - 서비스별 최적화 추천 사항 검토
    - 위험도별 필터링
    - 상세 개선 방안 확인
+   - 추천 사항 조건에 대한 자세한 내용은 [recommendation_conditions.md](/static/docs/recommendation_conditions.md) 참조
 
 ## 보안 참고 사항 (Security Notes)
 
@@ -110,7 +110,6 @@ python run.py
 - 이슈 트래커를 통한 버그 리포트 및 기능 요청
 - 풀 리퀘스트 환영
 - 코드 스타일: PEP 8 준수
-- 테스트 실행: `python -m pytest`
 
 ## 프로젝트 구조 (Project Structure)
 
@@ -124,17 +123,14 @@ python run.py
 ├── config.py               # 설정 파일
 ├── requirements.txt        # 의존성 목록
 ├── run.py                  # 애플리케이션 실행 스크립트
-├── run_tests.py            # 테스트 실행 스크립트
 ├── static/                 # 정적 파일 (CSS, JS)
 │   ├── css/                # CSS 파일
 │   └── js/                 # JavaScript 파일
-├── templates/              # HTML 템플릿
-│   ├── base.html           # 기본 템플릿
-│   ├── consolidated.html   # 통합 대시보드 템플릿
-│   ├── dashboard.html      # 대시보드 템플릿
-│   ├── login.html          # 로그인 템플릿
-│   └── ...                 # 기타 템플릿
-└── test_app.py             # 단위 테스트
+└── templates/              # HTML 템플릿
+    ├── base.html           # 기본 템플릿
+    ├── consolidated.html   # 통합 대시보드 템플릿
+    ├── recommendations.html# 추천 사항 템플릿
+    └── login.html          # 로그인 템플릿
 ```
 
 ## 버전 관리 (Version Control)

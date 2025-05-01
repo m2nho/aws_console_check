@@ -1,5 +1,6 @@
-from flask import render_template, redirect, url_for, flash, session
+from flask import render_template, redirect, url_for, flash, session, send_from_directory
 from flask_login import login_required
+import os
 from app import app
 from app.services.ec2 import get_ec2_data, get_ec2_recommendations
 from app.services.s3 import get_s3_data, get_s3_recommendations
@@ -33,76 +34,110 @@ def recommendations_view():
     
     try:
         # EC2 추천 사항
-        ec2_data = get_ec2_data(aws_access_key, aws_secret_key, region)
-        if 'instances' in ec2_data:
-            all_recommendations.extend(get_ec2_recommendations(ec2_data['instances']))
+        # ec2_data = get_ec2_data(aws_access_key, aws_secret_key, region)
+        # if 'instances' in ec2_data:
+        #     all_recommendations.extend(get_ec2_recommendations(ec2_data['instances']))
         
-        # S3 추천 사항
-        s3_data = get_s3_data(aws_access_key, aws_secret_key, region)
-        if 'buckets' in s3_data:
-            all_recommendations.extend(get_s3_recommendations(s3_data['buckets'], aws_access_key, aws_secret_key, region))
+        # # S3 추천 사항
+        # s3_data = get_s3_data(aws_access_key, aws_secret_key, region)
+        # if 'buckets' in s3_data:
+        #     all_recommendations.extend(get_s3_recommendations(s3_data['buckets'], aws_access_key, aws_secret_key, region))
         
-        # RDS 추천 사항
-        rds_data = get_rds_data(aws_access_key, aws_secret_key, region)
-        if 'instances' in rds_data:
-            all_recommendations.extend(get_rds_recommendations(rds_data['instances']))
+        # # RDS 추천 사항
+        # rds_data = get_rds_data(aws_access_key, aws_secret_key, region)
+        # if 'instances' in rds_data:
+        #     all_recommendations.extend(get_rds_recommendations(rds_data['instances']))
         
         # Lambda 추천 사항
         lambda_data = get_lambda_data(aws_access_key, aws_secret_key, region)
         if 'functions' in lambda_data:
             all_recommendations.extend(get_lambda_recommendations(lambda_data['functions']))
         
-        # CloudWatch 추천 사항
-        cloudwatch_data = get_cloudwatch_data(aws_access_key, aws_secret_key, region)
-        if 'alarms' in cloudwatch_data:
-            all_recommendations.extend(get_cloudwatch_recommendations(cloudwatch_data['alarms']))
+        # # CloudWatch 추천 사항
+        # cloudwatch_data = get_cloudwatch_data(aws_access_key, aws_secret_key, region)
+        # if 'alarms' in cloudwatch_data:
+        #     all_recommendations.extend(get_cloudwatch_recommendations(cloudwatch_data['alarms']))
         
-        # DynamoDB 추천 사항
-        dynamodb_data = get_dynamodb_data(aws_access_key, aws_secret_key, region)
-        if 'tables' in dynamodb_data:
-            all_recommendations.extend(get_dynamodb_recommendations(dynamodb_data['tables']))
+        # # DynamoDB 추천 사항
+        # dynamodb_data = get_dynamodb_data(aws_access_key, aws_secret_key, region)
+        # if 'tables' in dynamodb_data:
+        #     all_recommendations.extend(get_dynamodb_recommendations(dynamodb_data['tables']))
         
-        # ECS 추천 사항
-        ecs_data = get_ecs_data(aws_access_key, aws_secret_key, region)
-        if 'clusters' in ecs_data:
-            all_recommendations.extend(get_ecs_recommendations(ecs_data['clusters']))
+        # # ECS 추천 사항
+        # ecs_data = get_ecs_data(aws_access_key, aws_secret_key, region)
+        # if 'clusters' in ecs_data:
+        #     all_recommendations.extend(get_ecs_recommendations(ecs_data['clusters']))
         
-        # EKS 추천 사항
-        eks_data = get_eks_data(aws_access_key, aws_secret_key, region)
-        if 'clusters' in eks_data:
-            all_recommendations.extend(get_eks_recommendations(eks_data['clusters']))
+        # # EKS 추천 사항
+        # eks_data = get_eks_data(aws_access_key, aws_secret_key, region)
+        # if 'clusters' in eks_data:
+        #     all_recommendations.extend(get_eks_recommendations(eks_data['clusters']))
         
-        # SNS 추천 사항
-        sns_data = get_sns_data(aws_access_key, aws_secret_key, region)
-        if 'topics' in sns_data:
-            all_recommendations.extend(get_sns_recommendations(sns_data['topics']))
+        # # SNS 추천 사항
+        # sns_data = get_sns_data(aws_access_key, aws_secret_key, region)
+        # if 'topics' in sns_data:
+        #     all_recommendations.extend(get_sns_recommendations(sns_data['topics']))
         
-        # SQS 추천 사항
-        sqs_data = get_sqs_data(aws_access_key, aws_secret_key, region)
-        if 'queues' in sqs_data:
-            all_recommendations.extend(get_sqs_recommendations(sqs_data['queues']))
+        # # SQS 추천 사항
+        # sqs_data = get_sqs_data(aws_access_key, aws_secret_key, region)
+        # if 'queues' in sqs_data:
+        #     all_recommendations.extend(get_sqs_recommendations(sqs_data['queues']))
         
-        # API Gateway 추천 사항
-        apigateway_data = get_apigateway_data(aws_access_key, aws_secret_key, region)
-        if 'apis' in apigateway_data:
-            all_recommendations.extend(get_apigateway_recommendations(apigateway_data['apis']))
+        # # API Gateway 추천 사항
+        # apigateway_data = get_apigateway_data(aws_access_key, aws_secret_key, region)
+        # if 'apis' in apigateway_data:
+        #     all_recommendations.extend(get_apigateway_recommendations(apigateway_data['apis']))
         
-        # ElastiCache 추천 사항
-        elasticache_data = get_elasticache_data(aws_access_key, aws_secret_key, region)
-        if 'clusters' in elasticache_data:
-            all_recommendations.extend(get_elasticache_recommendations(elasticache_data['clusters']))
+        # # ElastiCache 추천 사항
+        # elasticache_data = get_elasticache_data(aws_access_key, aws_secret_key, region)
+        # if 'clusters' in elasticache_data:
+        #     all_recommendations.extend(get_elasticache_recommendations(elasticache_data['clusters']))
         
-        # Route 53 추천 사항
-        route53_data = get_route53_data(aws_access_key, aws_secret_key, region)
-        if 'zones' in route53_data:
-            all_recommendations.extend(get_route53_recommendations(route53_data['zones']))
+        # # Route 53 추천 사항
+        # route53_data = get_route53_data(aws_access_key, aws_secret_key, region)
+        # if 'zones' in route53_data:
+        #     all_recommendations.extend(get_route53_recommendations(route53_data['zones']))
         
-        # IAM 추천 사항
-        iam_data = get_iam_data(aws_access_key, aws_secret_key, region)
-        if 'users' in iam_data:
-            all_recommendations.extend(get_iam_recommendations(iam_data['users']))
+        # # IAM 추천 사항
+        # iam_data = get_iam_data(aws_access_key, aws_secret_key, region)
+        # if 'users' in iam_data:
+        #     all_recommendations.extend(get_iam_recommendations(iam_data['users']))
         
     except Exception as e:
         flash(f'추천 사항 수집 중 오류가 발생했습니다: {str(e)}')
     
     return render_template('recommendations.html', recommendations=all_recommendations)
+
+@app.route('/recommendation_conditions.md')
+def serve_recommendation_conditions():
+    """
+    메인 목차 Markdown 파일을 제공하는 라우트
+    """
+    docs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'docs')
+    return send_from_directory(docs_dir, 'recommendation_conditions.md', mimetype='text/markdown')
+
+@app.route('/<service>/README.md')
+def serve_service_recommendations(service):
+    """
+    서비스별 README.md 파일을 제공하는 라우트
+    
+    Args:
+        service (str): 서비스 이름 (ec2, s3, rds 등)
+    """
+    docs_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        'docs',
+        service
+    )
+    
+    # 유효한 서비스 목록 정의
+    valid_services = ['ec2', 's3', 'rds', 'lambda', 'iam', 'cloudwatch']
+    
+    # 잘못된 서비스 이름으로의 접근 방지
+    if service not in valid_services:
+        return "Invalid service", 404
+        
+    try:
+        return send_from_directory(docs_dir, 'README.md', mimetype='text/markdown')
+    except FileNotFoundError:
+        return "Document not found", 404

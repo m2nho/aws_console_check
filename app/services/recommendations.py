@@ -21,56 +21,56 @@ def get_all_recommendations(all_services_data, aws_access_key, aws_secret_key, r
     if 'ec2' in all_services_data and 'instances' in all_services_data['ec2']:
         all_recommendations.extend(get_ec2_recommendations(all_services_data['ec2']['instances']))
     
-    # S3 추천 사항
-    if 's3' in all_services_data and 'buckets' in all_services_data['s3']:
-        all_recommendations.extend(get_s3_recommendations(all_services_data['s3']['buckets'], aws_access_key, aws_secret_key, region))
+    # # S3 추천 사항
+    # if 's3' in all_services_data and 'buckets' in all_services_data['s3']:
+    #     all_recommendations.extend(get_s3_recommendations(all_services_data['s3']['buckets'], aws_access_key, aws_secret_key, region))
     
-    # RDS 추천 사항
-    if 'rds' in all_services_data and 'instances' in all_services_data['rds']:
-        all_recommendations.extend(get_rds_recommendations(all_services_data['rds']['instances']))
+    # # RDS 추천 사항
+    # if 'rds' in all_services_data and 'instances' in all_services_data['rds']:
+    #     all_recommendations.extend(get_rds_recommendations(all_services_data['rds']['instances']))
     
-    # Lambda 추천 사항
-    if 'lambda' in all_services_data and 'functions' in all_services_data['lambda']:
-        all_recommendations.extend(get_lambda_recommendations(all_services_data['lambda']['functions']))
+    # # Lambda 추천 사항
+    # if 'lambda' in all_services_data and 'functions' in all_services_data['lambda']:
+    #     all_recommendations.extend(get_lambda_recommendations(all_services_data['lambda']['functions']))
     
-    # CloudWatch 추천 사항
-    if 'cloudwatch' in all_services_data and 'alarms' in all_services_data['cloudwatch']:
-        all_recommendations.extend(get_cloudwatch_recommendations(all_services_data['cloudwatch']['alarms']))
+    # # CloudWatch 추천 사항
+    # if 'cloudwatch' in all_services_data and 'alarms' in all_services_data['cloudwatch']:
+    #     all_recommendations.extend(get_cloudwatch_recommendations(all_services_data['cloudwatch']['alarms']))
     
-    # DynamoDB 추천 사항
-    if 'dynamodb' in all_services_data and 'tables' in all_services_data['dynamodb']:
-        all_recommendations.extend(get_dynamodb_recommendations(all_services_data['dynamodb']['tables']))
+    # # DynamoDB 추천 사항
+    # if 'dynamodb' in all_services_data and 'tables' in all_services_data['dynamodb']:
+    #     all_recommendations.extend(get_dynamodb_recommendations(all_services_data['dynamodb']['tables']))
     
-    # ECS 추천 사항
-    if 'ecs' in all_services_data and 'clusters' in all_services_data['ecs']:
-        all_recommendations.extend(get_ecs_recommendations(all_services_data['ecs']['clusters']))
+    # # ECS 추천 사항
+    # if 'ecs' in all_services_data and 'clusters' in all_services_data['ecs']:
+    #     all_recommendations.extend(get_ecs_recommendations(all_services_data['ecs']['clusters']))
     
-    # EKS 추천 사항
-    if 'eks' in all_services_data and 'clusters' in all_services_data['eks']:
-        all_recommendations.extend(get_eks_recommendations(all_services_data['eks']['clusters']))
+    # # EKS 추천 사항
+    # if 'eks' in all_services_data and 'clusters' in all_services_data['eks']:
+    #     all_recommendations.extend(get_eks_recommendations(all_services_data['eks']['clusters']))
     
-    # SNS 추천 사항
-    if 'sns' in all_services_data and 'topics' in all_services_data['sns']:
-        all_recommendations.extend(get_sns_recommendations(all_services_data['sns']['topics']))
+    # # SNS 추천 사항
+    # if 'sns' in all_services_data and 'topics' in all_services_data['sns']:
+    #     all_recommendations.extend(get_sns_recommendations(all_services_data['sns']['topics']))
     
-    # SQS 추천 사항
-    if 'sqs' in all_services_data and 'queues' in all_services_data['sqs']:
-        all_recommendations.extend(get_sqs_recommendations(all_services_data['sqs']['queues']))
+    # # SQS 추천 사항
+    # if 'sqs' in all_services_data and 'queues' in all_services_data['sqs']:
+    #     all_recommendations.extend(get_sqs_recommendations(all_services_data['sqs']['queues']))
     
-    # API Gateway 추천 사항
-    if 'apigateway' in all_services_data and 'apis' in all_services_data['apigateway']:
-        all_recommendations.extend(get_apigateway_recommendations(all_services_data['apigateway']['apis']))
+    # # API Gateway 추천 사항
+    # if 'apigateway' in all_services_data and 'apis' in all_services_data['apigateway']:
+    #     all_recommendations.extend(get_apigateway_recommendations(all_services_data['apigateway']['apis']))
     
-    # ElastiCache 추천 사항
-    if 'elasticache' in all_services_data and 'clusters' in all_services_data['elasticache']:
-        all_recommendations.extend(get_elasticache_recommendations(all_services_data['elasticache']['clusters']))
+    # # ElastiCache 추천 사항
+    # if 'elasticache' in all_services_data and 'clusters' in all_services_data['elasticache']:
+    #     all_recommendations.extend(get_elasticache_recommendations(all_services_data['elasticache']['clusters']))
     
-    # Route 53 추천 사항
-    if 'route53' in all_services_data and 'zones' in all_services_data['route53']:
-        all_recommendations.extend(get_route53_recommendations(all_services_data['route53']['zones']))
+    # # Route 53 추천 사항
+    # if 'route53' in all_services_data and 'zones' in all_services_data['route53']:
+    #     all_recommendations.extend(get_route53_recommendations(all_services_data['route53']['zones']))
     
-    # IAM 추천 사항
-    if 'iam' in all_services_data and 'users' in all_services_data['iam']:
-        all_recommendations.extend(get_iam_recommendations(all_services_data['iam']['users']))
+    # # IAM 추천 사항
+    # if 'iam' in all_services_data and 'users' in all_services_data['iam']:
+    #     all_recommendations.extend(get_iam_recommendations(all_services_data['iam']['users']))
     
     return all_recommendations
