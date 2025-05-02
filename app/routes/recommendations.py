@@ -34,9 +34,9 @@ def recommendations_view():
     
     try:
         # EC2 추천 사항
-        # ec2_data = get_ec2_data(aws_access_key, aws_secret_key, region)
-        # if 'instances' in ec2_data:
-        #     all_recommendations.extend(get_ec2_recommendations(ec2_data['instances']))
+        ec2_data = get_ec2_data(aws_access_key, aws_secret_key, region)
+        if 'instances' in ec2_data:
+            all_recommendations.extend(get_ec2_recommendations(ec2_data['instances']))
         
         # # S3 추천 사항
         # s3_data = get_s3_data(aws_access_key, aws_secret_key, region)

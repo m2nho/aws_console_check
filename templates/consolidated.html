@@ -2,6 +2,10 @@
 
 {% block title %}통합 대시보드 - AWS 콘솔 체크{% endblock %}
 
+{% block extra_css %}
+
+{% endblock %}
+
 {% block content %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -17,186 +21,88 @@
         <div>
             <button class="btn btn-primary" id="expand-all">모두 펼치기</button>
             <button class="btn btn-outline-secondary ms-2" id="collapse-all">모두 접기</button>
+            {% if not is_collecting %}
+            <button class="btn btn-success ms-2" id="start-collection">데이터 수집</button>
+            {% endif %}
         </div>
         <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="auto-refresh" checked>
+            <input class="form-check-input" type="checkbox" id="auto-refresh" {% if not is_collecting %}checked{% else %}disabled{% endif %}>
             <label class="form-check-label" for="auto-refresh">자동 새로고침 (30초)</label>
         </div>
     </div>
 </div>
 
+{% if is_collecting or error %}
+<div id="collection-progress-container" class="mb-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">데이터 수집 진행 상황</h5>
+        </div>
+        <div class="card-body">
+            {% if error %}
+            <div class="alert alert-danger">
+                <strong>오류 발생:</strong> {{ error }}
+            </div>
+            {% else %}
+            <p>현재 수집 중인 서비스: <strong id="current-service">{{ current_service }}</strong></p>
+            <div class="progress mb-3">
+                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                     style="width: {% if total_services > 0 %}{{ (completed_services|length / total_services * 100)|round|int }}{% else %}0{% endif %}%;" 
+                     aria-valuenow="{% if total_services > 0 %}{{ (completed_services|length / total_services * 100)|round|int }}{% else %}0{% endif %}" 
+                     aria-valuemin="0" aria-valuemax="100">
+                    {% if total_services > 0 %}{{ (completed_services|length / total_services * 100)|round|int }}{% else %}0{% endif %}%
+                </div>
+            </div>
+            <p>완료된 서비스: <span id="completed-count">{{ completed_services|length }}</span> / <span id="total-services">{{ total_services }}</span></p>
+            <div class="mb-2">
+                <span class="badge bg-success me-1">완료됨</span>
+                <span class="badge bg-primary me-1">수집 중</span>
+                <span class="badge bg-pending me-1">수집 예정</span>
+            </div>
+            <div id="completed-services-list">
+                {% for service in completed_services %}
+                <span class="badge bg-success me-1 mb-1">{{ service }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer">
+            <small class="text-muted">데이터 수집이 완료되면 자동으로 페이지가 새로고침됩니다.</small>
+        </div>
+    </div>
+</div>
+{% endif %}
 
-{% include 'sections/ec2_section.html' %}
-{% include 'sections/s3_section.html' %}
-{% include 'sections/rds_section.html' %}
-{% include 'sections/lambda_section.html' %}
-{% include 'sections/cloudwatch_section.html' %}
-{% include 'sections/iam_section.html' %}
-{% include 'sections/dynamodb_section.html' %}
-{% include 'sections/ecs_section.html' %}
-{% include 'sections/eks_section.html' %}
-{% include 'sections/elasticache_section.html' %}
-{% include 'sections/route53_section.html' %}
-{% include 'sections/sns_section.html' %}
-{% include 'sections/sqs_section.html' %}
+{% if is_collecting %}
+<div class="alert alert-info mb-4">
+    <p>데이터를 수집 중입니다. 데이터 수집이 완료되면 서비스 섹션이 표시됩니다.</p>
+</div>
 
+<!-- 데이터 수집 중에는 서비스 섹션을 표시하지 않음 -->
 
+{% elif all_services_data %}
+<!-- 데이터 수집이 완료된 경우 -->
+{% include 'sections/ec2_section.html' with context %}
+{% include 'sections/s3_section.html' with context %}
+{% include 'sections/rds_section.html' with context %}
+{% include 'sections/lambda_section.html' with context %}
+{% include 'sections/cloudwatch_section.html' with context %}
+{% include 'sections/iam_section.html' with context %}
+{% include 'sections/dynamodb_section.html' with context %}
+{% include 'sections/ecs_section.html' with context %}
+{% include 'sections/eks_section.html' with context %}
+{% include 'sections/elasticache_section.html' with context %}
+{% include 'sections/route53_section.html' with context %}
+{% include 'sections/sns_section.html' with context %}
+{% include 'sections/sqs_section.html' with context %}
+{% include 'sections/apigateway_section.html' with context %}
 
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize tooltips
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-        
-        // Make tables sortable
-        const tables = document.querySelectorAll('.table-sortable');
-        if (tables) {
-            tables.forEach(table => {
-                const headers = table.querySelectorAll('th');
-                headers.forEach((header, index) => {
-                    header.addEventListener('click', function() {
-                        sortTable(table, index);
-                    });
-                    header.title = '클릭하여 정렬';
-                });
-            });
-        }
-        
-        // Function to sort tables
-        function sortTable(table, column) {
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            const direction = table.getAttribute('data-sort-direction') === 'asc' ? -1 : 1;
-            
-            // Sort the rows
-            rows.sort((a, b) => {
-                const aValue = a.querySelectorAll('td')[column].textContent.trim();
-                const bValue = b.querySelectorAll('td')[column].textContent.trim();
-                
-                if (!isNaN(aValue) && !isNaN(bValue)) {
-                    return direction * (Number(aValue) - Number(bValue));
-                } else {
-                    return direction * aValue.localeCompare(bValue, 'ko');
-                }
-            });
-            
-            // Update the table
-            rows.forEach(row => tbody.appendChild(row));
-            
-            // Toggle the sort direction
-            table.setAttribute('data-sort-direction', direction === 1 ? 'asc' : 'desc');
-        }
-        
-        // Handle expand/collapse all buttons
-        const expandAllBtn = document.getElementById('expand-all');
-        const collapseAllBtn = document.getElementById('collapse-all');
-        
-        if (expandAllBtn) {
-            expandAllBtn.addEventListener('click', function() {
-                document.querySelectorAll('.service-section .collapse').forEach(section => {
-                    const bsCollapse = new bootstrap.Collapse(section, { toggle: false });
-                    bsCollapse.show();
-                });
-            });
-        }
-        
-        if (collapseAllBtn) {
-            collapseAllBtn.addEventListener('click', function() {
-                document.querySelectorAll('.service-section .collapse').forEach(section => {
-                    const bsCollapse = new bootstrap.Collapse(section, { toggle: false });
-                    bsCollapse.hide();
-                });
-            });
-        }
-        
-        // Handle refresh button
-        const refreshBtn = document.getElementById('refresh-data');
-        const lastRefreshSpan = document.getElementById('last-refresh');
-        
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', function() {
-                // Add spinning animation to the refresh icon
-                const refreshIcon = refreshBtn.querySelector('i');
-                refreshIcon.classList.add('refreshing');
-                
-                // Disable the button during refresh
-                refreshBtn.disabled = true;
-                
-                // Reload the page
-                setTimeout(() => {
-                    window.location.reload();
-                }, 500);
-            });
-        }
-        
-        // Auto refresh functionality
-        const autoRefreshToggle = document.getElementById('auto-refresh');
-        let refreshInterval;
-        
-        if (autoRefreshToggle) {
-            // Initialize auto refresh based on the toggle state
-            if (autoRefreshToggle.checked) {
-                startAutoRefresh();
-            }
-            
-            // Toggle auto refresh on change
-            autoRefreshToggle.addEventListener('change', function() {
-                if (this.checked) {
-                    startAutoRefresh();
-                } else {
-                    stopAutoRefresh();
-                }
-            });
-        }
-        
-        function startAutoRefresh() {
-            // Clear any existing interval
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-            }
-            
-            // Set new interval (30 seconds)
-            refreshInterval = setInterval(() => {
-                // Update the last refresh time
-                updateLastRefreshTime();
-                
-                // Add spinning animation to the refresh icon
-                const refreshIcon = refreshBtn.querySelector('i');
-                refreshIcon.classList.add('refreshing');
-                
-                // Reload the page
-                window.location.reload();
-            }, 30000);
-        }
-        
-        function stopAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-                refreshInterval = null;
-            }
-        }
-        
-        // Update the last refresh time
-        function updateLastRefreshTime() {
-            if (lastRefreshSpan) {
-                lastRefreshSpan.textContent = '마지막 업데이트: 방금 전';
-            }
-        }
-        
-        // Update the last refresh time every minute
-        setInterval(() => {
-            if (lastRefreshSpan && lastRefreshSpan.textContent === '마지막 업데이트: 방금 전') {
-                lastRefreshSpan.textContent = '마지막 업데이트: 1분 전';
-            } else if (lastRefreshSpan) {
-                const currentText = lastRefreshSpan.textContent;
-                const minutes = parseInt(currentText.match(/\d+/)[0]);
-                lastRefreshSpan.textContent = `마지막 업데이트: ${minutes + 1}분 전`;
-            }
-        }, 60000);
-    });
-</script>
-{% endblock %} <!-- end of extra_js block -->
-{% endblock %} <!-- end of content block -->
+{% else %}
+<!-- 데이터가 없는 경우 -->
+<div class="alert alert-info">
+    <p>데이터가 없습니다. '데이터 수집' 버튼을 클릭하여 AWS 서비스 데이터를 수집하세요.</p>
+</div>
+{% endif %}
+
+{% endblock %}  
+

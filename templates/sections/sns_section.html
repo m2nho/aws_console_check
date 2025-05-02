@@ -47,8 +47,6 @@
                                 <th>주제 이름</th>
                                 <th>구독 수</th>
                                 <th>전송 정책</th>
-                                <th>위험도</th>
-                                <th>작업</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,102 +60,6 @@
                                     {% else %}
                                         <span class="badge bg-warning">설정 안됨</span>
                                     {% endif %}
-                                </td>
-                                <td>
-                                    {% set rec_key = 'sns:' ~ topic.name %}
-                                    {% if resource_recommendations[rec_key] is defined %}
-                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">없음</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-sns-{{ loop.index }}">
-                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="details-row">
-                                <td colspan="5" class="p-0">
-                                    <div class="collapse" id="details-sns-{{ loop.index }}">
-                                        <div class="card card-body bg-light border-0 p-3 m-2">
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-bell me-2"></i>주제 정보</h6>
-                                                <p class="mb-1"><strong>주제 이름:</strong> {{ topic.name }}</p>
-                                                <p class="mb-1"><strong>ARN:</strong> {{ topic.arn }}</p>
-                                                <p class="mb-1"><strong>구독 수:</strong> {{ topic.subscriptions }}</p>
-                                                <p class="mb-0"><strong>전송 정책:</strong> 
-                                                    {% if topic.effective_delivery_policy %}
-                                                        <span class="badge bg-success">설정됨</span>
-                                                    {% else %}
-                                                        <span class="badge bg-warning">설정 안됨</span>
-                                                    {% endif %}
-                                                </p>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2">
-                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
-                                                </h6>
-                                                <p class="mb-0">
-                                                    {% if topic.subscriptions == 0 %}
-                                                        SNS 주제 {{ topic.name }}에 구독이 없습니다.
-                                                    {% else %}
-                                                        SNS 주제 {{ topic.name }}의 설정이 최적화되지 않았을 수 있습니다.
-                                                    {% endif %}
-                                                </p>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
-                                                <p class="mb-0">
-                                                    {% if topic.subscriptions == 0 %}
-                                                        구독이 없는 주제는 메시지를 전달할 수 없으며, 불필요한 리소스를 차지합니다.
-                                                    {% else %}
-                                                        SNS 주제 설정이 최적화되지 않으면 메시지 전달 실패나 불필요한 비용이 발생할 수 있습니다.
-                                                    {% endif %}
-                                                </p>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
-                                                <ol class="ps-3 mb-0">
-                                                    {% if topic.subscriptions == 0 %}
-                                                        <li class="mb-1">주제가 필요한지 검토합니다.</li>
-                                                        <li class="mb-1">필요하다면 적절한 엔드포인트(이메일, SMS, Lambda 등)를 구독으로 추가합니다.</li>
-                                                        <li class="mb-1">필요하지 않다면 주제를 삭제하여 리소스를 정리합니다.</li>
-                                                    {% else %}
-                                                        <li class="mb-1">전송 정책을 설정하여 재시도 동작을 최적화합니다.</li>
-                                                        <li class="mb-1">메시지 필터링을 활용하여 관련 메시지만 구독자에게 전달합니다.</li>
-                                                        <li class="mb-1">데드 레터 큐를 설정하여 전달되지 않은 메시지를 처리합니다.</li>
-                                                        <li class="mb-1">메시지 아카이브를 활성화하여 감사 및 디버깅을 지원합니다.</li>
-                                                    {% endif %}
-                                                </ol>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
-                                                <p class="mb-0">
-                                                    {% if topic.subscriptions == 0 %}
-                                                        불필요한 리소스를 제거하거나 필요한 구독을 추가하여 알림 시스템을 효과적으로 활용할 수 있습니다.
-                                                    {% else %}
-                                                        SNS 주제 설정을 최적화하면 메시지 전달 신뢰성을 향상시키고 비용을 절감할 수 있습니다.
-                                                    {% endif %}
-                                                </p>
-                                            </div>
-                                            
-                                            <div>
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
-                                                <ul class="ps-3 mb-0">
-                                                    <li><a href="https://docs.aws.amazon.com/sns/latest/dg/sns-message-delivery-retries.html" target="_blank">SNS 메시지 전송 재시도</a></li>
-                                                    <li><a href="https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html" target="_blank">SNS 메시지 필터링</a></li>
-                                                    <li><a href="https://docs.aws.amazon.com/sns/latest/dg/sns-dead-letter-queues.html" target="_blank">SNS 데드 레터 큐</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}

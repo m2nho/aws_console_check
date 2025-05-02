@@ -57,8 +57,6 @@
                                 <th>처리 중 메시지</th>
                                 <th>지연된 메시지</th>
                                 <th>유형</th>
-                                <th>위험도</th>
-                                <th>작업</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,116 +72,6 @@
                                     {% else %}
                                         <span class="badge bg-secondary">표준</span>
                                     {% endif %}
-                                </td>
-                                <td>
-                                    {% set rec_key = 'sqs:' ~ queue.name %}
-                                    {% if resource_recommendations[rec_key] is defined %}
-                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">없음</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-sqs-{{ loop.index }}">
-                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="details-row">
-                                <td colspan="7" class="p-0">
-                                    <div class="collapse" id="details-sqs-{{ loop.index }}">
-                                        <div class="card card-body bg-light border-0 p-3 m-2">
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-exchange-alt me-2"></i>대기열 정보</h6>
-                                                <p class="mb-1"><strong>대기열 이름:</strong> {{ queue.name }}</p>
-                                                <p class="mb-1"><strong>URL:</strong> {{ queue.url }}</p>
-                                                <p class="mb-1"><strong>메시지 수:</strong> {{ queue.messages }}</p>
-                                                <p class="mb-1"><strong>처리 중 메시지:</strong> {{ queue.messages_not_visible }}</p>
-                                                <p class="mb-1"><strong>지연된 메시지:</strong> {{ queue.messages_delayed }}</p>
-                                                <p class="mb-0"><strong>유형:</strong> 
-                                                    {% if queue.is_fifo %}
-                                                        <span class="badge bg-success">FIFO</span>
-                                                    {% else %}
-                                                        <span class="badge bg-secondary">표준</span>
-                                                    {% endif %}
-                                                </p>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2">
-                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
-                                                </h6>
-                                                <p class="mb-0">
-                                                    {% if queue.messages > 1000 %}
-                                                        SQS 대기열 {{ queue.name }}에 많은 메시지({{ queue.messages }}개)가 있습니다.
-                                                    {% elif queue.messages_not_visible > 100 %}
-                                                        SQS 대기열 {{ queue.name }}에 많은 메시지({{ queue.messages_not_visible }}개)가 처리 중 상태입니다.
-                                                    {% else %}
-                                                        SQS 대기열 {{ queue.name }}의 설정이 최적화되지 않았을 수 있습니다.
-                                                    {% endif %}
-                                                </p>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
-                                                <p class="mb-0">
-                                                    {% if queue.messages > 1000 %}
-                                                        메시지가 많이 쌓이면 처리 지연이 발생하고 시스템 성능에 영향을 줄 수 있습니다.
-                                                    {% elif queue.messages_not_visible > 100 %}
-                                                        많은 메시지가 처리 중 상태로 유지되면 처리 실패 또는 소비자 문제를 나타낼 수 있습니다.
-                                                    {% else %}
-                                                        SQS 대기열 설정이 최적화되지 않으면 메시지 처리 효율성이 저하되거나 불필요한 비용이 발생할 수 있습니다.
-                                                    {% endif %}
-                                                </p>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
-                                                <ol class="ps-3 mb-0">
-                                                    {% if queue.messages > 1000 %}
-                                                        <li class="mb-1">소비자 애플리케이션의 처리 속도를 확인합니다.</li>
-                                                        <li class="mb-1">소비자 인스턴스 수를 늘리는 것을 고려합니다.</li>
-                                                        <li class="mb-1">Auto Scaling 그룹을 설정하여 대기열 깊이에 따라 소비자를 자동으로 확장합니다.</li>
-                                                        <li class="mb-1">메시지 처리 로직을 최적화합니다.</li>
-                                                    {% elif queue.messages_not_visible > 100 %}
-                                                        <li class="mb-1">소비자 애플리케이션의 오류 로그를 확인합니다.</li>
-                                                        <li class="mb-1">메시지 가시성 타임아웃 설정을 검토합니다.</li>
-                                                        <li class="mb-1">데드레터 큐를 설정하여 반복적으로 실패하는 메시지를 캡처합니다.</li>
-                                                        <li class="mb-1">소비자 애플리케이션의 메시지 처리 로직을 디버깅합니다.</li>
-                                                    {% else %}
-                                                        <li class="mb-1">메시지 보존 기간을 검토하여 필요에 맞게 조정합니다.</li>
-                                                        <li class="mb-1">데드레터 큐를 설정하여 처리할 수 없는 메시지를 관리합니다.</li>
-                                                        <li class="mb-1">배치 처리를 활용하여 처리량을 향상시킵니다.</li>
-                                                        <li class="mb-1">장기 폴링을 활성화하여 빈 응답 수를 줄입니다.</li>
-                                                    {% endif %}
-                                                </ol>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
-                                                <p class="mb-0">
-                                                    {% if queue.messages > 1000 %}
-                                                        소비자를 확장하면 메시지 처리 속도가 향상되고 시스템 응답성이 개선됩니다.
-                                                    {% elif queue.messages_not_visible > 100 %}
-                                                        데드레터 큐를 설정하면 문제가 있는 메시지를 격리하고 나머지 메시지 처리를 계속할 수 있습니다.
-                                                    {% else %}
-                                                        SQS 대기열 설정을 최적화하면 메시지 처리 효율성을 향상시키고 비용을 절감할 수 있습니다.
-                                                    {% endif %}
-                                                </p>
-                                            </div>
-                                            
-                                            <div>
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
-                                                <ul class="ps-3 mb-0">
-                                                    <li><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-best-practices.html" target="_blank">SQS 모범 사례</a></li>
-                                                    <li><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html" target="_blank">SQS 데드레터 큐 사용</a></li>
-                                                    <li><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html" target="_blank">SQS 가시성 타임아웃 이해</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}

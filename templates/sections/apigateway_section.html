@@ -49,7 +49,6 @@
                                 <th>스테이지 수</th>
                                 <th>API 키 필요</th>
                                 <th>생성일</th>
-                                <th>위험도</th>
                                 <th>작업</th>
                             </tr>
                         </thead>
@@ -68,14 +67,6 @@
                                 </td>
                                 <td>{{ api.created_date }}</td>
                                 <td>
-                                    {% set rec_key = 'apigateway:' ~ api.name %}
-                                    {% if resource_recommendations[rec_key] is defined %}
-                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">없음</span>
-                                    {% endif %}
-                                </td>
-                                <td>
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-apigateway-{{ loop.index }}">
                                             <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
@@ -84,7 +75,7 @@
                                 </td>
                             </tr>
                             <tr class="details-row">
-                                <td colspan="7" class="p-0">
+                                <td colspan="6" class="p-0">
                                     <div class="collapse" id="details-apigateway-{{ loop.index }}">
                                         <div class="card card-body bg-light border-0 p-3 m-2">
                                             <div class="mb-3">

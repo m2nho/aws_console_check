@@ -58,7 +58,6 @@
                                 <th>노드 유형</th>
                                 <th>노드 수</th>
                                 <th>엔진 버전</th>
-                                <th>위험도</th>
                                 <th>작업</th>
                             </tr>
                         </thead>
@@ -78,14 +77,6 @@
                                 <td>{{ cluster.nodes }}</td>
                                 <td>{{ cluster.engine_version }}</td>
                                 <td>
-                                    {% set rec_key = 'elasticache:' ~ cluster.id %}
-                                    {% if resource_recommendations[rec_key] is defined %}
-                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">없음</span>
-                                    {% endif %}
-                                </td>
-                                <td>
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-elasticache-{{ loop.index }}">
                                             <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
@@ -94,7 +85,7 @@
                                 </td>
                             </tr>
                             <tr class="details-row">
-                                <td colspan="8" class="p-0">
+                                <td colspan="7" class="p-0">
                                     <div class="collapse" id="details-elasticache-{{ loop.index }}">
                                         <div class="card card-body bg-light border-0 p-3 m-2">
                                             <div class="mb-3">

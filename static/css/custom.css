@@ -7,6 +7,37 @@
     background-color: #f8f9fa;
 }
 
+/* 수집되지 않은 항목을 위한 스타일 - 빨간색 효과 제거 */
+.uncollected-service {
+    border: 2px solid #6c757d !important;
+    box-shadow: 0 0 10px rgba(108, 117, 125, 0.3) !important;
+}
+
+.uncollected-service .card-header {
+    background-color: rgba(108, 117, 125, 0.1) !important;
+}
+
+/* 수집 중인 서비스 스타일 */
+.collecting-service {
+    border: 2px solid #0d6efd !important;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.3) !important;
+}
+
+.collecting-service .card-header {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+/* 데이터 수집 중 서비스 섹션 숨김 */
+.data-collecting .service-section {
+    display: none;
+}
+
+/* 수집 예정인 서비스 배지 스타일 */
+.badge.bg-pending {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
 .toggle-icon {
     transition: transform 0.3s;
 }

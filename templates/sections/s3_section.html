@@ -46,8 +46,6 @@
                             <tr>
                                 <th>버킷 이름</th>
                                 <th>생성일</th>
-                                <th>위험도</th>
-                                <th>작업</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -55,70 +53,6 @@
                             <tr>
                                 <td>{{ bucket.name }}</td>
                                 <td>{{ bucket.creation_date }}</td>
-                                <td>
-                                    {% set rec_key = 's3:' ~ bucket.name %}
-                                    {% if resource_recommendations[rec_key] is defined %}
-                                        <span class="badge bg-{{ 'danger' if resource_recommendations[rec_key].severity == '높음' else 'warning' if resource_recommendations[rec_key].severity == '중간' else 'info' }}">{{ resource_recommendations[rec_key].severity }}</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">없음</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary toggle-details" data-bs-toggle="collapse" data-bs-target="#details-s3-{{ loop.index }}">
-                                            <i class="fas fa-chevron-down me-1"></i> 세부 작업 보기
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="details-row">
-                                <td colspan="5" class="p-0">
-                                    <div class="collapse" id="details-s3-{{ loop.index }}">
-                                        <div class="card card-body bg-light border-0 p-3 m-2">
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-database me-2"></i>버킷 정보</h6>
-                                                <p class="mb-1"><strong>버킷 이름:</strong> {{ bucket.name }}</p>
-                                                <p class="mb-0"><strong>생성일:</strong> {{ bucket.creation_date }}</p>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2">
-                                                    <i class="fas fa-exclamation-triangle me-2"></i>문제점
-                                                </h6>
-                                                <p class="mb-0">S3 버킷 {{ bucket.name }}에 수명 주기 규칙이 설정되어 있지 않을 수 있습니다.</p>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-chart-line me-2"></i>영향</h6>
-                                                <p class="mb-0">수명 주기 규칙이 없으면 오래된 객체가 자동으로 저비용 스토리지 클래스로 이동하거나 삭제되지 않아 불필요한 비용이 발생할 수 있습니다.</p>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-tasks me-2"></i>권장 조치</h6>
-                                                <ol class="ps-3 mb-0">
-                                                    <li class="mb-1">AWS 콘솔에서 S3 서비스로 이동합니다.</li>
-                                                    <li class="mb-1">버킷 {{ bucket.name }}을 선택합니다.</li>
-                                                    <li class="mb-1">'관리' 탭을 클릭합니다.</li>
-                                                    <li class="mb-1">'수명 주기 규칙'에서 '규칙 생성'을 클릭합니다.</li>
-                                                    <li class="mb-1">객체의 사용 패턴에 따라 적절한 전환 및 만료 규칙을 설정합니다.</li>
-                                                </ol>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-check-circle me-2"></i>기대 효과</h6>
-                                                <p class="mb-0">수명 주기 규칙을 설정하면 자주 액세스하지 않는 객체를 자동으로 저비용 스토리지 클래스로 이동하거나 불필요한 객체를 삭제하여 스토리지 비용을 절감할 수 있습니다.</p>
-                                            </div>
-                                            
-                                            <div>
-                                                <h6 class="fw-bold text-muted mb-2"><i class="fas fa-link me-2"></i>관련 링크</h6>
-                                                <ul class="ps-3 mb-0">
-                                                    <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-configuration-examples.html" target="_blank">S3 수명 주기 구성 예제</a></li>
-                                                    <li><a href="https://aws.amazon.com/blogs/aws/amazon-s3-object-lifecycle-management/" target="_blank">S3 객체 수명 주기 관리 블로그</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
