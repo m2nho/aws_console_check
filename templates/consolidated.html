@@ -3,7 +3,25 @@
 {% block title %}통합 대시보드 - AWS 콘솔 체크{% endblock %}
 
 {% block extra_css %}
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    /* 화살표 애니메이션 */
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-20px);
+        }
+        60% {
+            transform: translateY(-10px);
+        }
+    }
+    
+    .animate-bounce {
+        animation: bounce 2s infinite;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -79,6 +97,23 @@
 </div>
 
 <!-- 데이터 수집 중에는 서비스 섹션을 표시하지 않음 -->
+
+{% elif show_collection_message %}
+<div class="alert alert-warning mb-4">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+        <div>
+            <h4 class="alert-heading">데이터 수집이 필요합니다!</h4>
+            <p class="mb-0">서비스 정보를 보기 전에 먼저 데이터를 수집해야 합니다. 위의 <strong>'데이터 수집'</strong> 버튼을 클릭하여 AWS 서비스 데이터를 수집하세요.</p>
+        </div>
+    </div>
+</div>
+
+<div class="text-center my-5">
+    <i class="fas fa-arrow-up fa-3x mb-3 text-primary animate-bounce"></i>
+    <h3>데이터 수집 버튼을 클릭하세요</h3>
+    <p class="lead">AWS 서비스 데이터를 수집한 후 서비스 정보를 확인할 수 있습니다.</p>
+</div>
 
 {% elif all_services_data %}
 <!-- 데이터 수집이 완료된 경우 -->

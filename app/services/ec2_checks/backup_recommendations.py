@@ -28,13 +28,13 @@ def check_backup_recommendations(instance):
                     # Check if instance is covered by any selection
                     for selection in selections.get('BackupSelectionsList', []):
                         # Check if instance is directly selected
-                        if instance['InstanceId'] in selection.get('Resources', []):
+                        if instance['id'] in selection.get('Resources', []):
                             has_backup = True
                             break
                             
                         # Check if instance is selected by tags
                         if 'ListOfTags' in selection:
-                            instance_tags = {tag['Key']: tag['Value'] for tag in instance.get('Tags', [])}
+                            instance_tags = {tag['Key']: tag['Value'] for tag in instance.get('tags', [])}
                             for tag_item in selection['ListOfTags']:
                                 if (tag_item['ConditionKey'] in instance_tags and 
                                     instance_tags[tag_item['ConditionKey']] == tag_item.get('ConditionValue')):
@@ -55,7 +55,7 @@ def check_backup_recommendations(instance):
         if not has_backup:
             return {
                 'service': 'EC2',
-                'resource': instance['InstanceId'],
+                'resource': instance['id'],
                 'message': "백업 정책 구성이 필요합니다.",
                 'severity': '높음',
                 'problem': "정기적인 백업 정책이 설정되어 있지 않습니다.",

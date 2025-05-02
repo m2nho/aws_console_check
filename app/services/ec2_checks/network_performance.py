@@ -9,25 +9,25 @@ logger = logging.getLogger(__name__)
 def check_network_performance(instance):
     """네트워크 성능 모니터링"""
     try:
-        logger.debug(f"Checking network performance for instance {instance.get('InstanceId')}")
-        network_metrics = instance.get('NetworkMetrics', {})
+        logger.debug(f"Checking network performance for instance {instance.get('id')}")
+        network_metrics = instance.get('network_metrics', {})
         issues = []
         
         # 네트워크 사용량 검사
         if network_metrics.get('NetworkIn', 0) > 100000000:  # 100MB/s
             msg = "높은 인바운드 네트워크 사용량"
-            logger.warning(f"Instance {instance['InstanceId']}: {msg}")
+            logger.warning(f"Instance {instance['id']}: {msg}")
             issues.append(msg)
         if network_metrics.get('NetworkOut', 0) > 100000000:  # 100MB/s
             msg = "높은 아웃바운드 네트워크 사용량"
-            logger.warning(f"Instance {instance['InstanceId']}: {msg}")
+            logger.warning(f"Instance {instance['id']}: {msg}")
             issues.append(msg)
 
         if issues:
-            logger.info(f"Found {len(issues)} network performance issues for instance {instance['InstanceId']}")
+            logger.info(f"Found {len(issues)} network performance issues for instance {instance['id']}")
             return {
                 'service': 'EC2',
-                'resource': instance['InstanceId'],
+                'resource': instance['id'],
                 'message': "네트워크 성능 개선이 필요합니다.",
                 'severity': '높음',
                 'problem': "\n".join(issues),
@@ -40,8 +40,8 @@ def check_network_performance(instance):
                     "향상된 네트워킹 활성화를 검토합니다."
                 ]
             }
-        logger.debug(f"No network performance issues found for instance {instance['InstanceId']}")
+        logger.debug(f"No network performance issues found for instance {instance['id']}")
         return None
     except Exception as e:
-        logger.error(f"Error in check_network_performance for instance {instance.get('InstanceId')}: {str(e)}", exc_info=True)
+        logger.error(f"Error in check_network_performance for instance {instance.get('id')}: {str(e)}", exc_info=True)
         return None

@@ -140,8 +140,8 @@ def consolidated_view():
     # 데이터 수집 상태 확인
     global collection_status
     
-    # 수집 중인 경우 빈 데이터 구조 생성
-    if collection_status['is_collecting']:
+    # 수집 중인 경우 진행 상태 표시
+    if collection_status['is_collecting'] and collection_status['user_id'] == user_id:
         # 모든 서비스에 대한 빈 데이터 구조 생성
         empty_services_data = {}
         for service_key in aws_services.keys():
@@ -159,19 +159,24 @@ def consolidated_view():
                               current_service=collection_status['current_service'],
                               completed_services=collection_status['completed_services'],
                               total_services=collection_status['total_services'],
-                              error=collection_status['error'])
+                              error=collection_status['error'],
+                              show_collection_message=False)
     
-    # 데이터가 수집 중이거나 아직 수집되지 않은 경우
-    if (collection_status['user_id'] != user_id) or not collection_status['all_services_data']:
+    # 데이터 수집이 완료되지 않은 경우 (completed_services가 비어있는 경우)
+    # 또는 현재 사용자의 데이터가 없는 경우
+    if not collection_status['completed_services'] or collection_status['user_id'] != user_id:
+        # 데이터 수집 버튼을 표시하는 페이지 렌더링
+        flash('서비스 정보를 보기 전에 먼저 데이터를 수집해야 합니다. 데이터 수집 버튼을 클릭하세요.')
         return render_template('consolidated.html', 
                               services=aws_services, 
                               all_services_data={}, 
                               resource_recommendations={},
-                              is_collecting=collection_status['is_collecting'],
-                              current_service=collection_status['current_service'],
-                              completed_services=collection_status['completed_services'],
+                              is_collecting=False,
+                              current_service=None,
+                              completed_services=[],
                               total_services=collection_status['total_services'],
-                              error=collection_status['error'])
+                              error=None,
+                              show_collection_message=True)
     
     # 데이터가 이미 수집된 경우
     return render_template('consolidated.html', 
@@ -182,7 +187,8 @@ def consolidated_view():
                           current_service=None,
                           completed_services=collection_status['completed_services'],
                           total_services=collection_status['total_services'],
-                          error=collection_status['error'])
+                          error=collection_status['error'],
+                          show_collection_message=False)
 
 @app.route('/start_collection', methods=['POST'])
 @login_required

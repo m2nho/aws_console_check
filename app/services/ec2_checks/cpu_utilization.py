@@ -23,14 +23,14 @@ def check_cpu_utilization(instance):
     }
 
     try:
-        instance_id = instance.get('InstanceId')
+        instance_id = instance.get('id')
         logger.debug(f"Checking CPU utilization for instance {instance_id}")
 
-        if not (instance['State'] == 'running' and instance.get('CpuMetrics')):
+        if not (instance['state'] == 'running' and instance.get('cpu_metrics')):
             logger.debug(f"Instance {instance_id} is not running or has no CPU metrics")
             return None
 
-        cpu_stats = analyze_cpu_metrics(instance['CpuMetrics'])
+        cpu_stats = analyze_cpu_metrics(instance['cpu_metrics'])
         logger.debug(f"CPU stats for instance {instance_id}: {cpu_stats}")
 
         # CPU 사용 패턴 분석

@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 def check_old_generation_instance(instance):
     """이전 세대 인스턴스 타입 검사"""
-    instance_id = instance.get('InstanceId', 'unknown')
-    instance_type = instance.get('InstanceType', '')
+    instance_id = instance.get('id', 'unknown')
+    instance_type = instance.get('type', '')
     logger.debug(f"Checking instance type for {instance_id}: {instance_type}")
     
     try:

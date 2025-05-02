@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const completedServicesList = document.getElementById('completed-services-list');
     const autoRefreshToggle = document.getElementById('auto-refresh');
     
+    // 현재 페이지 확인
+    const isConsolidatedPage = window.location.pathname.includes('/consolidated');
+    
     // 서비스 ID와 이름 매핑
     const serviceMapping = {
         'EC2': 'ec2',
@@ -29,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
         'Route 53': 'route53'
     };
     
-    // 데이터 수집 시작 버튼 이벤트 처리
-    if (startCollectionBtn) {
+    // 데이터 수집 시작 버튼 이벤트 처리 - 통합 대시보드 페이지에서만 적용
+    if (startCollectionBtn && isConsolidatedPage) {
         startCollectionBtn.addEventListener('click', function() {
             // 버튼 비활성화
             startCollectionBtn.disabled = true;

@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, flash, session, send_from_directory
-from flask_login import login_required
+from flask_login import login_required, current_user
 import os
 from app import app
 from app.services.ec2 import get_ec2_data, get_ec2_recommendations
@@ -16,6 +16,7 @@ from app.services.apigateway import get_apigateway_data, get_apigateway_recommen
 from app.services.elasticache import get_elasticache_data, get_elasticache_recommendations
 from app.services.route53 import get_route53_data, get_route53_recommendations
 from app.services.iam import get_iam_data, get_iam_recommendations
+from app.routes.dashboard import collection_status
 
 @app.route('/recommendations')
 @login_required
@@ -28,85 +29,76 @@ def recommendations_view():
         flash('AWS 자격 증명이 없습니다. 다시 로그인해주세요.')
         return redirect(url_for('login'))
     
-    # 모든 서비스에 대한 추천 사항 수집
+    # 현재 사용자 ID
+    user_id = current_user.get_id()
+    
+    # 데이터 수집 상태 확인
+    global collection_status
+    
+    # 수집 중인 경우 진행 상태 표시
+    if collection_status['is_collecting'] and collection_status['user_id'] == user_id:
+        return render_template('recommendations.html', 
+                              recommendations=[],
+                              is_collecting=collection_status['is_collecting'],
+                              current_service=collection_status['current_service'],
+                              completed_services=collection_status['completed_services'],
+                              total_services=collection_status['total_services'],
+                              error=collection_status['error'])
+    
+    # 데이터 수집이 완료되지 않은 경우 (completed_services가 비어있는 경우)
+    # 또는 현재 사용자의 데이터가 없는 경우
+    if not collection_status['completed_services'] or collection_status['user_id'] != user_id:
+        # 데이터 수집 버튼을 표시하는 페이지 렌더링
+        flash('추천 사항을 보기 전에 먼저 데이터를 수집해야 합니다. 데이터 수집 버튼을 클릭하세요.')
+        return render_template('recommendations.html', 
+                              recommendations=[],
+                              is_collecting=False,
+                              current_service=None,
+                              completed_services=[],
+                              total_services=collection_status['total_services'],
+                              error=None,
+                              show_collection_message=True)
+    
+    # 데이터 수집이 완료된 경우, 이미 수집된 데이터를 기반으로 추천 사항 생성
     all_recommendations = []
     region = app.config.get('AWS_DEFAULT_REGION', 'ap-northeast-2')
     
     try:
-        # EC2 추천 사항
-        ec2_data = get_ec2_data(aws_access_key, aws_secret_key, region)
-        if 'instances' in ec2_data:
-            all_recommendations.extend(get_ec2_recommendations(ec2_data['instances']))
+        # 이미 수집된 데이터를 사용하여 추천 사항 생성
+        if 'ec2' in collection_status['all_services_data'] and 'instances' in collection_status['all_services_data']['ec2']:
+            all_recommendations.extend(get_ec2_recommendations(collection_status['all_services_data']['ec2']['instances']))
         
-        # # S3 추천 사항
-        # s3_data = get_s3_data(aws_access_key, aws_secret_key, region)
-        # if 'buckets' in s3_data:
-        #     all_recommendations.extend(get_s3_recommendations(s3_data['buckets'], aws_access_key, aws_secret_key, region))
+        if 'lambda' in collection_status['all_services_data'] and 'functions' in collection_status['all_services_data']['lambda']:
+            all_recommendations.extend(get_lambda_recommendations(collection_status['all_services_data']['lambda']['functions']))
+        
+        # S3 추천 사항
+        if 's3' in collection_status['all_services_data'] and 'buckets' in collection_status['all_services_data']['s3']:
+            all_recommendations.extend(get_s3_recommendations(collection_status['all_services_data']['s3']['buckets'], aws_access_key, aws_secret_key, region))
         
         # # RDS 추천 사항
-        # rds_data = get_rds_data(aws_access_key, aws_secret_key, region)
-        # if 'instances' in rds_data:
-        #     all_recommendations.extend(get_rds_recommendations(rds_data['instances']))
-        
-        # Lambda 추천 사항
-        lambda_data = get_lambda_data(aws_access_key, aws_secret_key, region)
-        if 'functions' in lambda_data:
-            all_recommendations.extend(get_lambda_recommendations(lambda_data['functions']))
+        # if 'rds' in collection_status['all_services_data'] and 'instances' in collection_status['all_services_data']['rds']:
+        #     all_recommendations.extend(get_rds_recommendations(collection_status['all_services_data']['rds']['instances']))
         
         # # CloudWatch 추천 사항
-        # cloudwatch_data = get_cloudwatch_data(aws_access_key, aws_secret_key, region)
-        # if 'alarms' in cloudwatch_data:
-        #     all_recommendations.extend(get_cloudwatch_recommendations(cloudwatch_data['alarms']))
-        
-        # # DynamoDB 추천 사항
-        # dynamodb_data = get_dynamodb_data(aws_access_key, aws_secret_key, region)
-        # if 'tables' in dynamodb_data:
-        #     all_recommendations.extend(get_dynamodb_recommendations(dynamodb_data['tables']))
-        
-        # # ECS 추천 사항
-        # ecs_data = get_ecs_data(aws_access_key, aws_secret_key, region)
-        # if 'clusters' in ecs_data:
-        #     all_recommendations.extend(get_ecs_recommendations(ecs_data['clusters']))
-        
-        # # EKS 추천 사항
-        # eks_data = get_eks_data(aws_access_key, aws_secret_key, region)
-        # if 'clusters' in eks_data:
-        #     all_recommendations.extend(get_eks_recommendations(eks_data['clusters']))
-        
-        # # SNS 추천 사항
-        # sns_data = get_sns_data(aws_access_key, aws_secret_key, region)
-        # if 'topics' in sns_data:
-        #     all_recommendations.extend(get_sns_recommendations(sns_data['topics']))
-        
-        # # SQS 추천 사항
-        # sqs_data = get_sqs_data(aws_access_key, aws_secret_key, region)
-        # if 'queues' in sqs_data:
-        #     all_recommendations.extend(get_sqs_recommendations(sqs_data['queues']))
-        
-        # # API Gateway 추천 사항
-        # apigateway_data = get_apigateway_data(aws_access_key, aws_secret_key, region)
-        # if 'apis' in apigateway_data:
-        #     all_recommendations.extend(get_apigateway_recommendations(apigateway_data['apis']))
-        
-        # # ElastiCache 추천 사항
-        # elasticache_data = get_elasticache_data(aws_access_key, aws_secret_key, region)
-        # if 'clusters' in elasticache_data:
-        #     all_recommendations.extend(get_elasticache_recommendations(elasticache_data['clusters']))
-        
-        # # Route 53 추천 사항
-        # route53_data = get_route53_data(aws_access_key, aws_secret_key, region)
-        # if 'zones' in route53_data:
-        #     all_recommendations.extend(get_route53_recommendations(route53_data['zones']))
+        # if 'cloudwatch' in collection_status['all_services_data'] and 'alarms' in collection_status['all_services_data']['cloudwatch']:
+        #     all_recommendations.extend(get_cloudwatch_recommendations(collection_status['all_services_data']['cloudwatch']['alarms']))
         
         # # IAM 추천 사항
-        # iam_data = get_iam_data(aws_access_key, aws_secret_key, region)
-        # if 'users' in iam_data:
-        #     all_recommendations.extend(get_iam_recommendations(iam_data['users']))
+        # if 'iam' in collection_status['all_services_data'] and 'users' in collection_status['all_services_data']['iam']:
+        #     all_recommendations.extend(get_iam_recommendations(collection_status['all_services_data']['iam']['users']))
+        
         
     except Exception as e:
-        flash(f'추천 사항 수집 중 오류가 발생했습니다: {str(e)}')
+        flash(f'추천 사항 생성 중 오류가 발생했습니다: {str(e)}')
     
-    return render_template('recommendations.html', recommendations=all_recommendations)
+    return render_template('recommendations.html', 
+                          recommendations=all_recommendations,
+                          is_collecting=False,
+                          current_service=None,
+                          completed_services=collection_status['completed_services'],
+                          total_services=collection_status['total_services'],
+                          error=None,
+                          show_collection_message=False)
 
 @app.route('/recommendation_conditions.md')
 def serve_recommendation_conditions():

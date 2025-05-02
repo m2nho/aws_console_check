@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 
 def check_stopped_instance(instance):
     """장기 중지된 인스턴스 검사"""
-    instance_id = instance.get('InstanceId', 'unknown')
+    instance_id = instance.get('id', 'unknown')
     logger.debug(f"Checking stopped instance: {instance_id}")
     
     try:
-        if instance.get('State') == 'stopped':
-            stop_duration = calculate_stop_duration(instance.get('StateTransitionTime'))
+        if instance.get('state') == 'stopped':
+            stop_duration = calculate_stop_duration(instance.get('state_transition_time'))
             if stop_duration and stop_duration.days >= 7:
                 logger.info(f"Found long-stopped instance: {instance_id}")
                 return {
