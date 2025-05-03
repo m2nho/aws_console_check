@@ -57,6 +57,36 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- 인스턴스 타입별 분포 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">인스턴스 타입별 분포</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% set instance_types = {} %}
+                            {% for instance in all_services_data.ec2.instances %}
+                                {% if instance.type in instance_types %}
+                                    {% set _ = instance_types.update({instance.type: instance_types[instance.type] + 1}) %}
+                                {% else %}
+                                    {% set _ = instance_types.update({instance.type: 1}) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% for type, count in instance_types.items() %}
+                            <div class="col-md-3 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ type }}</span>
+                                    <span class="badge bg-primary">{{ count }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 인스턴스 테이블 -->
                 <div class="table-responsive">
                     <table class="table table-striped table-hover table-sortable">
                         <thead>
@@ -65,6 +95,10 @@
                                 <th>인스턴스 유형</th>
                                 <th>상태</th>
                                 <th>가용 영역</th>
+                                <th>시작 시간</th>
+                                <th>보안 그룹</th>
+                                <th>볼륨</th>
+                                <th>상세 정보</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -82,6 +116,144 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ instance.az }}</td>
+                                <td>{{ instance.launch_time|default('-') }}</td>
+                                <td>
+                                    {% if instance.security_groups|default([]) %}
+                                        <span class="badge bg-info">{{ instance.security_groups|length }}개</span>
+                                    {% else %}
+                                        <span>-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if instance.volumes|default([]) %}
+                                        <span class="badge bg-info">{{ instance.volumes|length }}개</span>
+                                    {% else %}
+                                        <span>-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#instance-details-{{ instance.id }}" aria-expanded="false">
+                                        상세 보기
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="instance-details-{{ instance.id }}">
+                                <td colspan="8">
+                                    <div class="card card-body bg-light">
+                                        <h6>인스턴스 상세 정보</h6>
+                                        
+                                        <!-- 태그 정보 -->
+                                        {% if instance.tags|default([]) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">태그</h6>
+                                            <div class="row">
+                                                {% for tag in instance.tags %}
+                                                <div class="col-md-3 mb-1">
+                                                    <span class="badge bg-secondary">{{ tag.Key }}: {{ tag.Value }}</span>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- 보안 그룹 정보 -->
+                                        {% if instance.security_groups|default([]) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">보안 그룹</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>그룹 ID</th>
+                                                            <th>IP 범위</th>
+                                                            <th>포트</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for sg in instance.security_groups %}
+                                                        <tr>
+                                                            <td>{{ sg.group_id }}</td>
+                                                            <td>
+                                                                {% for ip_range in sg.ip_ranges|default([]) %}
+                                                                <span class="badge bg-secondary">{{ ip_range }}</span>
+                                                                {% endfor %}
+                                                            </td>
+                                                            <td>
+                                                                {% for port in sg.ports|default([]) %}
+                                                                <span class="badge bg-info">{{ port }}</span>
+                                                                {% endfor %}
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- 볼륨 정보 -->
+                                        {% if instance.volumes|default([]) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">볼륨</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>볼륨 ID</th>
+                                                            <th>크기 (GB)</th>
+                                                            <th>볼륨 유형</th>
+                                                            <th>상태</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for volume in instance.volumes %}
+                                                        <tr>
+                                                            <td>{{ volume.VolumeId }}</td>
+                                                            <td>{{ volume.Size }}</td>
+                                                            <td>{{ volume.VolumeType }}</td>
+                                                            <td>{{ volume.State }}</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- CPU 메트릭 정보 -->
+                                        {% if instance.cpu_metrics|default([]) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">CPU 사용률 (최근 7일)</h6>
+                                            <div class="progress" style="height: 25px;">
+                                                {% set avg_cpu = (instance.cpu_metrics|sum) / instance.cpu_metrics|length if instance.cpu_metrics|length > 0 else 0 %}
+                                                <div class="progress-bar {% if avg_cpu < 30 %}bg-success{% elif avg_cpu < 70 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ avg_cpu }}%;" 
+                                                     aria-valuenow="{{ avg_cpu }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ avg_cpu|round(2) }}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- 네트워크 메트릭 정보 -->
+                                        {% if instance.network_metrics|default({}) %}
+                                        <div>
+                                            <h6 class="text-muted">네트워크 트래픽 (최근 7일)</h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>수신:</strong> {{ instance.network_metrics.get('NetworkIn', 0)|round(2) }} MB</p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>송신:</strong> {{ instance.network_metrics.get('NetworkOut', 0)|round(2) }} MB</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

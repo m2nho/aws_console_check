@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/service-section.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/detailed-view.css') }}">
     {% block extra_css %}{% endblock %}
     <style>
         .modal {
@@ -81,6 +82,7 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/toggle-details.js') }}"></script>
     <script src="{{ url_for('static', filename='js/collection-progress.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/detailed-view.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -15,7 +15,7 @@
             {% elif all_services_data.s3.buckets|default([])|length > 0 %}
                 <!-- S3 Summary Cards -->
                 <div class="row mb-4">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-primary text-white">
                             <div class="card-body">
                                 <h5 class="card-title">총 버킷</h5>
@@ -23,7 +23,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-info text-white">
                             <div class="card-body">
                                 <h5 class="card-title">최근 생성</h5>
@@ -31,7 +31,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-success text-white">
                             <div class="card-body">
                                 <h5 class="card-title">가장 오래된 버킷</h5>
@@ -39,20 +39,157 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">퍼블릭 액세스</h5>
+                                <p class="card-text display-6">{{ all_services_data.s3.buckets|selectattr('public_access', 'equalto', true)|list|length }}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
+                <!-- 보안 설정 요약 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">버킷 보안 설정 요약</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>암호화 활성화</span>
+                                    <span class="badge bg-success">{{ all_services_data.s3.buckets|selectattr('encryption', 'equalto', true)|list|length }}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>버저닝 활성화</span>
+                                    <span class="badge bg-success">{{ all_services_data.s3.buckets|selectattr('versioning', 'equalto', true)|list|length }}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>라이프사이클 규칙 있음</span>
+                                    <span class="badge bg-success">{{ all_services_data.s3.buckets|selectattr('lifecycle_rules', 'defined')|selectattr('lifecycle_rules', 'ne', [])|list|length }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 버킷 테이블 -->
                 <div class="table-responsive">
                     <table class="table table-striped table-hover table-sortable">
                         <thead>
                             <tr>
                                 <th>버킷 이름</th>
+                                <th>리전</th>
                                 <th>생성일</th>
+                                <th>퍼블릭 액세스</th>
+                                <th>버저닝</th>
+                                <th>암호화</th>
+                                <th>객체 수</th>
+                                <th>크기</th>
+                                <th>상세 정보</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for bucket in all_services_data.s3.buckets %}
                             <tr>
                                 <td>{{ bucket.name }}</td>
+                                <td>{{ bucket.region|default('-') }}</td>
                                 <td>{{ bucket.creation_date }}</td>
+                                <td>
+                                    {% if bucket.public_access %}
+                                        <span class="badge bg-danger">퍼블릭</span>
+                                    {% else %}
+                                        <span class="badge bg-success">비공개</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if bucket.versioning %}
+                                        <span class="badge bg-success">활성화</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">비활성화</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if bucket.encryption %}
+                                        <span class="badge bg-success">활성화</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">비활성화</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ bucket.object_count|default(0)|int }}</td>
+                                <td>{{ (bucket.size|default(0) / 1024 / 1024)|round(2) }} MB</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#bucket-details-{{ loop.index }}" aria-expanded="false">
+                                        상세 보기
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="bucket-details-{{ loop.index }}">
+                                <td colspan="9">
+                                    <div class="card card-body bg-light">
+                                        <h6>버킷 상세 정보</h6>
+                                        
+                                        <!-- 태그 정보 -->
+                                        {% if bucket.tags|default({}) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">태그</h6>
+                                            <div class="row">
+                                                {% for key, value in bucket.tags.items() %}
+                                                <div class="col-md-3 mb-1">
+                                                    <span class="badge bg-secondary">{{ key }}: {{ value }}</span>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- 라이프사이클 규칙 -->
+                                        {% if bucket.lifecycle_rules|default([]) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">라이프사이클 규칙</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>ID</th>
+                                                            <th>상태</th>
+                                                            <th>접두사</th>
+                                                            <th>만료 일수</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for rule in bucket.lifecycle_rules %}
+                                                        <tr>
+                                                            <td>{{ rule.ID }}</td>
+                                                            <td>
+                                                                {% if rule.Status == 'Enabled' %}
+                                                                    <span class="badge bg-success">활성화</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-secondary">비활성화</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>{{ rule.Filter.Prefix|default('-') if rule.Filter is defined else '-' }}</td>
+                                                            <td>
+                                                                {% if rule.Expiration is defined and rule.Expiration.Days is defined %}
+                                                                    {{ rule.Expiration.Days }}일
+                                                                {% else %}
+                                                                    -
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

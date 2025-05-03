@@ -1,0 +1,174 @@
+/* 상세 보기 스타일 */
+.detail-section {
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-header {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.75rem;
+}
+
+.detail-table {
+    font-size: 0.875rem;
+}
+
+.detail-table th {
+    font-weight: 600;
+    background-color: #e9ecef;
+}
+
+.detail-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.detail-row {
+    transition: background-color 0.2s;
+}
+
+.detail-row:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* 접을 수 있는 상세 정보 스타일 */
+.collapsible-detail {
+    border-left: 3px solid #6c757d;
+    padding-left: 1rem;
+}
+
+/* 태그 스타일 */
+.tag-badge {
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* 메트릭 차트 스타일 */
+.metric-chart {
+    height: 100px;
+    margin-bottom: 1rem;
+}
+
+/* 상태 아이콘 */
+.status-icon {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.status-active {
+    background-color: #28a745;
+}
+
+.status-inactive {
+    background-color: #dc3545;
+}
+
+.status-warning {
+    background-color: #ffc107;
+}
+
+/* 툴팁 스타일 */
+.info-tooltip {
+    cursor: help;
+    color: #6c757d;
+}
+
+/* 테이블 내 버튼 스타일 */
+.table-action-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* 테이블 내 텍스트 줄임 */
+.text-truncate-cell {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 보안 상태 표시 */
+.security-status {
+    display: flex;
+    align-items: center;
+}
+
+.security-status-icon {
+    margin-right: 0.5rem;
+}
+
+/* 리소스 사용량 바 */
+.resource-usage-bar {
+    height: 20px;
+    margin-bottom: 0.5rem;
+}
+
+.resource-usage-label {
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* 상세 정보 토글 애니메이션 */
+.detail-toggle {
+    transition: transform 0.2s;
+}
+
+.detail-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+/* 상세 정보 컨테이너 */
+.detail-container {
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    border: 1px solid #dee2e6;
+}
+
+/* 서비스 섹션 헤더 스타일 */
+.service-section .card-header {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.service-section .card-header:hover {
+    background-color: #e9ecef;
+}
+
+/* 테이블 내 상세 정보 행 */
+tr.detail-row > td {
+    padding: 0;
+}
+
+tr.detail-row .card {
+    margin: 0;
+    border-top: none;
+    border-radius: 0;
+}
+
+/* 상세 정보 내 탭 스타일 */
+.detail-tabs .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.detail-tabs .tab-content {
+    padding: 1rem;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-top: none;
+}

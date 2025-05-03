@@ -27,7 +27,7 @@
                         <div class="card bg-info text-white">
                             <div class="card-body">
                                 <h5 class="card-title">런타임 종류</h5>
-                                <p class="card-text">{{ all_services_data.lambda.functions|map(attribute='runtime')|list|unique|list|length }} 종류</p>
+                                <p class="card-text">{{ all_services_data.lambda.functions|map(attribute='Runtime')|list|unique|list|length }} 종류</p>
                             </div>
                         </div>
                     </div>
@@ -48,6 +48,66 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- 런타임 분포 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">런타임 분포</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% set runtimes = {} %}
+                            {% for function in all_services_data.lambda.functions %}
+                                {% if function.Runtime in runtimes %}
+                                    {% set _ = runtimes.update({function.Runtime: runtimes[function.Runtime] + 1}) %}
+                                {% else %}
+                                    {% set _ = runtimes.update({function.Runtime: 1}) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% for runtime, count in runtimes.items() %}
+                            <div class="col-md-3 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ runtime }}</span>
+                                    <span class="badge bg-primary">{{ count }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 아키텍처 분포 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">아키텍처 분포</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% set architectures = {} %}
+                            {% for function in all_services_data.lambda.functions %}
+                                {% for arch in function.Architectures|default(['x86_64']) %}
+                                    {% if arch in architectures %}
+                                        {% set _ = architectures.update({arch: architectures[arch] + 1}) %}
+                                    {% else %}
+                                        {% set _ = architectures.update({arch: 1}) %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                            
+                            {% for arch, count in architectures.items() %}
+                            <div class="col-md-3 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ arch }}</span>
+                                    <span class="badge bg-primary">{{ count }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lambda 함수 테이블 -->
                 <div class="table-responsive">
                     <table class="table table-striped table-hover table-sortable">
                         <thead>
@@ -56,6 +116,10 @@
                                 <th>런타임</th>
                                 <th>메모리 (MB)</th>
                                 <th>타임아웃 (초)</th>
+                                <th>코드 크기</th>
+                                <th>아키텍처</th>
+                                <th>마지막 수정</th>
+                                <th>상세 정보</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -65,6 +129,168 @@
                                 <td>{{ function.Runtime }}</td>
                                 <td>{{ function.MemorySize }}</td>
                                 <td>{{ function.Timeout }}</td>
+                                <td>{{ (function.CodeSize / 1024 / 1024)|round(2) }} MB</td>
+                                <td>{{ function.Architectures|join(', ') }}</td>
+                                <td>{{ function.LastModified }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#lambda-details-{{ loop.index }}" aria-expanded="false">
+                                        상세 보기
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="lambda-details-{{ loop.index }}">
+                                <td colspan="8">
+                                    <div class="card card-body bg-light">
+                                        <h6>Lambda 함수 상세 정보</h6>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <h6 class="text-muted">기본 정보</h6>
+                                                <ul class="list-group">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        핸들러
+                                                        <span>{{ function.Handler }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        ARN
+                                                        <span class="text-truncate" style="max-width: 300px;">{{ function.FunctionArn }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        추적 구성
+                                                        <span>{{ function.TracingConfig }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        예약된 동시성
+                                                        <span>{{ function.ReservedConcurrency|default('-') }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        디버그 로그 감지
+                                                        {% if function.DebugLogsDetected|default(false) %}
+                                                            <span class="badge bg-warning">감지됨</span>
+                                                        {% else %}
+                                                            <span class="badge bg-success">없음</span>
+                                                        {% endif %}
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="text-muted">네트워크 및 URL 구성</h6>
+                                                <ul class="list-group">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        VPC 구성
+                                                        {% if function.VpcConfig|default({}) and function.VpcConfig.VpcId is defined %}
+                                                            <span class="badge bg-info">VPC 연결됨</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">VPC 없음</span>
+                                                        {% endif %}
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        함수 URL
+                                                        {% if function.UrlConfig|default({}) and function.UrlConfig.Url is defined %}
+                                                            <span class="badge bg-success">활성화</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">비활성화</span>
+                                                        {% endif %}
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        URL 인증 유형
+                                                        <span>{{ function.UrlConfig.AuthType|default('-') }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        데드레터 큐
+                                                        {% if function.DeadLetterConfig|default({}) and function.DeadLetterConfig.TargetArn is defined %}
+                                                            <span class="badge bg-success">구성됨</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">없음</span>
+                                                        {% endif %}
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 환경 변수 -->
+                                        {% if function.Environment|default({}) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">환경 변수</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>키</th>
+                                                            <th>값</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for key, value in function.Environment.items() %}
+                                                        <tr>
+                                                            <td>{{ key }}</td>
+                                                            <td>
+                                                                {% if 'secret' in key.lower() or 'password' in key.lower() or 'key' in key.lower() %}
+                                                                    <span class="text-muted">******</span>
+                                                                {% else %}
+                                                                    {{ value }}
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- 레이어 정보 -->
+                                        {% if function.Layers|default([]) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">레이어</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>레이어 ARN</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for layer in function.Layers %}
+                                                        <tr>
+                                                            <td>{{ layer.Arn }}</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- 버전 정보 -->
+                                        {% if function.VersionsInfo|default([]) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">버전</h6>
+                                            <div class="row">
+                                                {% for version in function.VersionsInfo %}
+                                                <div class="col-md-2 mb-1">
+                                                    <span class="badge bg-secondary">{{ version.Version }}</span>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- 태그 정보 -->
+                                        {% if function.Tags|default({}) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">태그</h6>
+                                            <div class="row">
+                                                {% for key, value in function.Tags.items() %}
+                                                <div class="col-md-3 mb-1">
+                                                    <span class="badge bg-secondary">{{ key }}: {{ value }}</span>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

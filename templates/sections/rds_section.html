@@ -48,14 +48,48 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- 엔진 유형별 분포 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">데이터베이스 엔진 분포</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% set engines = {} %}
+                            {% for instance in all_services_data.rds.instances %}
+                                {% if instance.engine in engines %}
+                                    {% set _ = engines.update({instance.engine: engines[instance.engine] + 1}) %}
+                                {% else %}
+                                    {% set _ = engines.update({instance.engine: 1}) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% for engine, count in engines.items() %}
+                            <div class="col-md-3 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ engine }}</span>
+                                    <span class="badge bg-primary">{{ count }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- RDS 인스턴스 테이블 -->
                 <div class="table-responsive">
                     <table class="table table-striped table-hover table-sortable">
                         <thead>
                             <tr>
                                 <th>인스턴스 ID</th>
                                 <th>엔진</th>
+                                <th>버전</th>
                                 <th>상태</th>
                                 <th>인스턴스 클래스</th>
+                                <th>스토리지 (GB)</th>
+                                <th>다중 AZ</th>
+                                <th>상세 정보</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -63,6 +97,7 @@
                             <tr>
                                 <td>{{ instance.id }}</td>
                                 <td>{{ instance.engine }}</td>
+                                <td>{{ instance.engine_version|default('-') }}</td>
                                 <td>
                                     {% if instance.status == 'available' %}
                                         <span class="badge bg-success">사용 가능</span>
@@ -71,6 +106,130 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ instance.size }}</td>
+                                <td>{{ instance.storage|default('-') }}</td>
+                                <td>
+                                    {% if instance.multi_az|default(false) %}
+                                        <span class="badge bg-success">예</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">아니오</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#rds-details-{{ loop.index }}" aria-expanded="false">
+                                        상세 보기
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="rds-details-{{ loop.index }}">
+                                <td colspan="8">
+                                    <div class="card card-body bg-light">
+                                        <h6>데이터베이스 인스턴스 상세 정보</h6>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <h6 class="text-muted">기본 정보</h6>
+                                                <ul class="list-group">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        생성 시간
+                                                        <span>{{ instance.creation_time|default('-') }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        엔드포인트
+                                                        <span>{{ instance.endpoint|default('-') }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        포트
+                                                        <span>{{ instance.port|default('-') }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        스토리지 유형
+                                                        <span>{{ instance.storage_type|default('-') }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        IOPS
+                                                        <span>{{ instance.iops|default('-') }}</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="text-muted">보안 및 백업 설정</h6>
+                                                <ul class="list-group">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        퍼블릭 액세스
+                                                        {% if instance.publicly_accessible|default(false) %}
+                                                            <span class="badge bg-danger">활성화</span>
+                                                        {% else %}
+                                                            <span class="badge bg-success">비활성화</span>
+                                                        {% endif %}
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        암호화
+                                                        {% if instance.encrypted|default(false) %}
+                                                            <span class="badge bg-success">활성화</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">비활성화</span>
+                                                        {% endif %}
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        자동 백업
+                                                        {% if instance.backup_retention_period|default(0) > 0 %}
+                                                            <span class="badge bg-success">{{ instance.backup_retention_period }} 일</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">비활성화</span>
+                                                        {% endif %}
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        백업 기간
+                                                        <span>{{ instance.backup_window|default('-') }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        유지 관리 기간
+                                                        <span>{{ instance.maintenance_window|default('-') }}</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 파라미터 그룹 정보 -->
+                                        {% if instance.parameter_groups|default([]) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">파라미터 그룹</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>이름</th>
+                                                            <th>상태</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for pg in instance.parameter_groups %}
+                                                        <tr>
+                                                            <td>{{ pg.name|default('-') }}</td>
+                                                            <td>{{ pg.status|default('-') }}</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- 태그 정보 -->
+                                        {% if instance.tags|default([]) %}
+                                        <div class="mb-3">
+                                            <h6 class="text-muted">태그</h6>
+                                            <div class="row">
+                                                {% for tag in instance.tags %}
+                                                <div class="col-md-3 mb-1">
+                                                    <span class="badge bg-secondary">{{ tag.Key }}: {{ tag.Value }}</span>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
