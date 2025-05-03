@@ -2,20 +2,13 @@ from flask import render_template, redirect, url_for, flash, session, send_from_
 from flask_login import login_required, current_user
 import os
 from app import app
-from app.services.ec2 import get_ec2_data, get_ec2_recommendations
-from app.services.s3 import get_s3_data, get_s3_recommendations
-from app.services.rds import get_rds_data, get_rds_recommendations
-from app.services.lambda_service import get_lambda_data, get_lambda_recommendations
-from app.services.cloudwatch import get_cloudwatch_data, get_cloudwatch_recommendations
-from app.services.dynamodb import get_dynamodb_data, get_dynamodb_recommendations
-from app.services.ecs import get_ecs_data, get_ecs_recommendations
-from app.services.eks import get_eks_data, get_eks_recommendations
-from app.services.sns import get_sns_data, get_sns_recommendations
-from app.services.sqs import get_sqs_data, get_sqs_recommendations
-from app.services.apigateway import get_apigateway_data, get_apigateway_recommendations
-from app.services.elasticache import get_elasticache_data, get_elasticache_recommendations
-from app.services.route53 import get_route53_data, get_route53_recommendations
-from app.services.iam import get_iam_data, get_iam_recommendations
+
+from app.services.recommendation import (
+    get_ec2_recommendations, get_s3_recommendations, get_rds_recommendations, get_lambda_recommendations,
+    get_cloudwatch_recommendations, get_dynamodb_recommendations, get_ecs_recommendations, get_eks_recommendations,
+    get_sns_recommendations, get_sqs_recommendations, get_apigateway_recommendations, get_elasticache_recommendations,
+    get_route53_recommendations, get_iam_recommendations
+)
 from app.routes.dashboard import collection_status
 
 @app.route('/recommendations')

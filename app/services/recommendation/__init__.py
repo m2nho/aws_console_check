@@ -1,0 +1,15 @@
+# Import all recommendation functions for easy access
+from app.services.recommendation.ec2 import get_ec2_recommendations
+from app.services.recommendation.lambda_service import get_lambda_recommendations
+from app.services.recommendation.s3 import get_s3_recommendations
+from app.services.recommendation.rds import get_rds_recommendations
+from app.services.recommendation.cloudwatch import get_cloudwatch_recommendations
+from app.services.recommendation.dynamodb import get_dynamodb_recommendations
+from app.services.recommendation.ecs import get_ecs_recommendations
+from app.services.recommendation.eks import get_eks_recommendations
+from app.services.recommendation.sns import get_sns_recommendations
+from app.services.recommendation.sqs import get_sqs_recommendations
+from app.services.recommendation.apigateway import get_apigateway_recommendations
+from app.services.recommendation.elasticache import get_elasticache_recommendations
+from app.services.recommendation.route53 import get_route53_recommendations
+from app.services.recommendation.iam import get_iam_recommendations

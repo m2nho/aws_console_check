@@ -1,0 +1,16 @@
+# Import all Lambda check functions for easy access
+from app.services.recommendation.check.lambda_service.arm64_architecture import check_arm64_architecture
+from app.services.recommendation.check.lambda_service.code_size import check_code_size
+from app.services.recommendation.check.lambda_service.dead_letter_queue import check_dead_letter_queue
+from app.services.recommendation.check.lambda_service.debug_logs_output import check_debug_logs_output
+from app.services.recommendation.check.lambda_service.environment_encryption import check_environment_encryption
+from app.services.recommendation.check.lambda_service.memory_size import check_memory_size
+from app.services.recommendation.check.lambda_service.public_layers import check_public_layers
+from app.services.recommendation.check.lambda_service.public_url_endpoint import check_public_url_endpoint
+from app.services.recommendation.check.lambda_service.reserved_concurrency import check_reserved_concurrency
+from app.services.recommendation.check.lambda_service.runtime_version import check_runtime_version
+from app.services.recommendation.check.lambda_service.tag_management import check_tag_management
+from app.services.recommendation.check.lambda_service.timeout_setting import check_timeout_setting
+from app.services.recommendation.check.lambda_service.version_alias_usage import check_version_alias_usage
+from app.services.recommendation.check.lambda_service.vpc_configuration import check_vpc_configuration
+from app.services.recommendation.check.lambda_service.xray_tracing import check_xray_tracing

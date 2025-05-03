@@ -340,47 +340,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
-    
-    // 데이터 수집 버튼 이벤트 처리
-    const startCollectionBtn = document.getElementById('start-collection');
-    if (startCollectionBtn) {
-        startCollectionBtn.addEventListener('click', function() {
-            // 버튼 비활성화
-            startCollectionBtn.disabled = true;
-            startCollectionBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 수집 시작 중...';
-            
-            // 데이터 수집 시작 요청
-            fetch('/start_collection', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'started') {
-                    // 수집 시작 성공
-                    console.log('데이터 수집이 시작되었습니다.');
-                    
-                    // 페이지 새로고침하여 진행 상황 표시
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    // 오류 발생
-                    alert(data.message);
-                    startCollectionBtn.disabled = false;
-                    startCollectionBtn.textContent = '데이터 수집';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('데이터 수집 요청 중 오류가 발생했습니다.');
-                startCollectionBtn.disabled = false;
-                startCollectionBtn.textContent = '데이터 수집';
-            });
-        });
-    }
 });
 </script>
 {% endblock %}

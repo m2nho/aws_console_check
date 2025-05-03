@@ -1,0 +1,10 @@
+# Import all EC2 check functions for easy access
+from app.services.recommendation.check.ec2.backup_recommendations import check_backup_recommendations
+from app.services.recommendation.check.ec2.cpu_utilization import check_cpu_utilization
+from app.services.recommendation.check.ec2.ebs_optimization import check_ebs_optimization
+from app.services.recommendation.check.ec2.network_performance import check_network_performance
+from app.services.recommendation.check.ec2.old_generation_instance import check_old_generation_instance
+from app.services.recommendation.check.ec2.reserved_instance import check_reserved_instance_recommendation
+from app.services.recommendation.check.ec2.security_group import check_security_group_recommendations
+from app.services.recommendation.check.ec2.stopped_instance import check_stopped_instance
+from app.services.recommendation.check.ec2.tag_recommendations import check_tag_recommendations
