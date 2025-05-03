@@ -43,10 +43,6 @@
             <button class="btn btn-success ms-2" id="start-collection">데이터 수집</button>
             {% endif %}
         </div>
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="auto-refresh" {% if not is_collecting %}checked{% else %}disabled{% endif %}>
-            <label class="form-check-label" for="auto-refresh">자동 새로고침 (30초)</label>
-        </div>
     </div>
 </div>
 
@@ -139,5 +135,39 @@
 </div>
 {% endif %}
 
-{% endblock %}  
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const expandAllBtn = document.getElementById('expand-all');
+    const collapseAllBtn = document.getElementById('collapse-all');
+    
+    expandAllBtn.addEventListener('click', function() {
+        // card-header 클래스를 가진 요소 내의 버튼만 선택
+        const accordionButtons = document.querySelectorAll('.card-header[data-bs-toggle="collapse"].collapsed');
+        accordionButtons.forEach(button => {
+            const targetId = button.getAttribute('data-bs-target');
+            const target = document.querySelector(targetId);
+            if (!target.classList.contains('show')) {
+                button.click();
+            }
+        });
+    });
+    
+    collapseAllBtn.addEventListener('click', function() {
+        // card-header 클래스를 가진 요소 내의 버튼만 선택
+        const accordionButtons = document.querySelectorAll('.card-header[data-bs-toggle="collapse"]:not(.collapsed)');
+        accordionButtons.forEach(button => {
+            const targetId = button.getAttribute('data-bs-target');
+            const target = document.querySelector(targetId);
+            if (target.classList.contains('show')) {
+                button.click();
+            }
+        });
+    });
+});
+
+
+
+</script>
+    
+{% endblock %}
 
